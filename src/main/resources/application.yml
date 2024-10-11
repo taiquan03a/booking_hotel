@@ -1,0 +1,51 @@
+application:
+  jwt:
+    expiration: 86400000
+    refresh-token:
+      expiration: 604800000
+  secret-key: qIeh85osZvGLA7gL+2F5nGf9Tw2ljTxajtaSlXJYUoTyGRDfJieA+d+CVIFN9lIoYtZfN6OE1yqSCl4JAfcx7g==
+cloudinary:
+  api-key: 286724265274633
+  api-secret: SKIT9QY2kO6p202xNHpeS3EdQOQ
+  cloud-name: du6jn3tdu
+  secure: true
+spring:
+  datasource:
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    password: 123
+    url: jdbc:sqlserver://localhost:1433;databaseName=booking;encrypt=true;trustServerCertificate=true;
+    username: sa
+    jpa:
+      show-sql: true
+      hibernate:
+        ddl-auto: none
+        dialect: org.hibernate.dialect.SQLServerDialect
+
+  mail:
+    host: smtp.gmail.com
+    password: xzvbxjvuqtcdvedy
+    port: 587
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+        transport:
+          protocol: smtp
+    username: shoesshopvn03@gmail.com
+  main:
+    allow-circular-references: true
+  security:
+    filter:
+      order: 0
+    user:
+      name: admin
+      password: password
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 10MB
+      max-file-size: 50MB
+      max-request-size: 50MB
