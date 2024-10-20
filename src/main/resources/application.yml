@@ -5,9 +5,9 @@ application:
       expiration: 604800000
   secret-key: qIeh85osZvGLA7gL+2F5nGf9Tw2ljTxajtaSlXJYUoTyGRDfJieA+d+CVIFN9lIoYtZfN6OE1yqSCl4JAfcx7g==
 cloudinary:
-  api-key: 286724265274633
-  api-secret: SKIT9QY2kO6p202xNHpeS3EdQOQ
-  cloud-name: du6jn3tdu
+  api-key: 891893339399535
+  api-secret: _mOk7EbEtcG9bYZ_kQIuSLRZQqU
+  cloud-name: dt7eo0hbq
   secure: true
 spring:
   datasource:

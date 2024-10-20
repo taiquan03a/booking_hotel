@@ -49,7 +49,6 @@ public class SecurityConfiguration{
                     .requestMatchers(
                             new AntPathRequestMatcher("/api/v1/auth/register/**"),
                             new AntPathRequestMatcher("/api/v1/auth/register"),
-                            new AntPathRequestMatcher("/api/v1/admin/event/create","POST"),
                             new AntPathRequestMatcher("/api/v1/user/**","GET"),
                             new AntPathRequestMatcher("/api/v1/auth/login"),
                             new AntPathRequestMatcher("/api/v1/auth/refresh")

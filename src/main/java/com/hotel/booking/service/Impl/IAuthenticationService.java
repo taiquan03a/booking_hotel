@@ -143,9 +143,19 @@ public class IAuthenticationService implements AuthenticationService {
                 for(Role role : user.getRoles()) {
                     roles.add(role.getRole());
                 }
-                return ResponseEntity.ok(AuthenticationResponse.builder()
-                                .accessToken(jwtToken)
-                                .roles(roles)
+//                return ResponseEntity.ok(AuthenticationResponse.builder()
+//                                .accessToken(jwtToken)
+//                                .roles(roles)
+//                                .build());
+                AuthenticationResponse data =  AuthenticationResponse.builder()
+                        .accessToken(jwtToken)
+                        .roles(roles)
+                        .build();
+                return ResponseEntity.ok(ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Thành công")
+                                .description("Successfully authenticated")
+                                .data(data)
                                 .build());
             }
 
