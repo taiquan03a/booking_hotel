@@ -17,10 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.crossstore.ChangeSetPersister;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -52,7 +49,45 @@ public class IRoomRankService implements RoomRankService {
     public ResponseEntity<?> getList(int roomNumber,LocalDate startDate, LocalDate endDate,int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<RoomRank> ranks = roomRankRepository.findByActiveTrue(pageable);
-        Page<RankRoomResponseUser> rankRoomResponseUserPage = ranks.map(roomRank -> mapRankTODto(roomRank, startDate, endDate,roomNumber));
+        List<RankRoomResponseUser> rankRoomResponseUser = new ArrayList<>();
+        for(RoomRank roomRank : ranks.getContent()) {
+            List<Room> rooms = roomRank.getRooms();
+            List<Room> activeRooms = new ArrayList<>();
+            for(Room room : rooms){
+                if(room.getActive()){
+                    List<RoomDetail> roomDetails = room.getRoomDetails().stream().filter(roomDetail -> RoomStatus.AVAILABLE.equals(roomDetail.getStatus())).toList();
+                    System.out.println(roomNumber + " " + roomDetails.size());
+                    if(roomDetails.size() >= roomNumber){
+                        activeRooms.add(room);
+                    }
+                }
+            }
+            if(!activeRooms.isEmpty()){
+                int minPrice = activeRooms.stream()
+                        .mapToInt(Room::getPrice)
+                        .min().orElse(0);
+                List<String> amenities = roomRank.getAmenity().stream().filter(Amenity::getActive).map(Amenity::getName).toList();
+                List<BedDto> bedDtos = new ArrayList<>();
+                for(RoomBed bed : roomRank.getRoomBeds()) {
+                    BedDto bedDto = BedDto.builder()
+                            .name(bed.getBed().getName())
+                            .quantity(bed.getQuantity())
+                            .build();
+                    bedDtos.add(bedDto);
+                }
+                RankRoomResponseUser res =  RankRoomResponseUser.builder()
+                        .id(roomRank.getId())
+                        .name(roomRank.getName())
+                        .price(minPrice)
+                        .bed(bedDtos)
+                        .image(roomRank.getImages().stream().map(Image::getPath).toList())
+                        .area(roomRank.getArea())
+                        .amenityList(amenities)
+                        .build();
+                rankRoomResponseUser.add(res);
+            }
+        }
+        Page<RankRoomResponseUser> rankRoomResponseUserPage = new PageImpl<>(rankRoomResponseUser, pageable, ranks.getTotalElements());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
