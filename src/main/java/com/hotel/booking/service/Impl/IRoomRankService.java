@@ -5,6 +5,7 @@ import com.hotel.booking.dto.bed.BedDto;
 import com.hotel.booking.dto.rankRoom.CreateRankRoomRequest;
 import com.hotel.booking.dto.rankRoom.EditRankRoomRequest;
 import com.hotel.booking.dto.rankRoom.RankRoomResponseUser;
+import com.hotel.booking.dto.room.RoomStatus;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
 import com.hotel.booking.model.*;
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,10 +49,10 @@ public class IRoomRankService implements RoomRankService {
     final private ImageRepository imageRepository;
 
     @Override
-    public ResponseEntity<?> getList(int page, int size) {
+    public ResponseEntity<?> getList(int roomNumber,LocalDate startDate, LocalDate endDate,int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<RoomRank> ranks = roomRankRepository.findByActiveTrue(pageable);
-        Page<RankRoomResponseUser> rankRoomResponseUserPage = ranks.map(this::mapRankTODto);
+        Page<RankRoomResponseUser> rankRoomResponseUserPage = ranks.map(roomRank -> mapRankTODto(roomRank, startDate, endDate,roomNumber));
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
@@ -61,11 +63,18 @@ public class IRoomRankService implements RoomRankService {
                                 .build()
                 );
     }
-    public RankRoomResponseUser mapRankTODto(RoomRank roomRank){
+    public RankRoomResponseUser mapRankTODto(RoomRank roomRank,LocalDate startDate, LocalDate endDate, int roomNumber){
         List<Room> rooms = roomRank.getRooms();
-        List<Room> activeRooms = rooms.stream()
-                .filter(Room::getActive) // Lọc các Room có active = true
-                .toList();
+        List<Room> activeRooms = new ArrayList<>();
+        for(Room room : rooms){
+            if(room.getActive()){
+                List<RoomDetail> roomDetails = room.getRoomDetails().stream().filter(roomDetail -> RoomStatus.AVAILABLE.equals(roomDetail.getStatus())).toList();
+                System.out.println(roomNumber + " " + roomDetails.size());
+                if(roomDetails.size() >= roomNumber){
+                    activeRooms.add(room);
+                }
+            }
+        }
         int minPrice = activeRooms.stream()
                 .mapToInt(Room::getPrice)
                 .min().orElse(0);
@@ -103,6 +112,15 @@ public class IRoomRankService implements RoomRankService {
                                 .build()
                 );
     }
+
+    @Override
+    public ResponseEntity<?> filter(LocalDate startDate, LocalDate endDate, int roomNumber,int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<RoomRank> ranks = roomRankRepository.findByActiveTrue(pageable);
+
+        return null;
+    }
+
     @Override
     public ResponseEntity<?> createRoomRank(CreateRankRoomRequest request, Principal principal) throws IOException {
         var user = (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();

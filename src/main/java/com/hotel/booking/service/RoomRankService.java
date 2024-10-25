@@ -6,11 +6,13 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.time.LocalDate;
 
 public interface RoomRankService {
-    ResponseEntity<?> getList(int page, int size);
+    ResponseEntity<?> getList(int roomNumber,LocalDate startDate, LocalDate endDate,int page, int size);
     ResponseEntity<?> createRoomRank(CreateRankRoomRequest request, Principal principal) throws  IOException;
     ResponseEntity<?> editRoomRank(EditRankRoomRequest request,Principal principal) throws IOException;
     ResponseEntity<?> active(int rankId);
     ResponseEntity<?> getListByAdmin(int page, int size,String sortBy,String direction);
+    ResponseEntity<?> filter(LocalDate startDate, LocalDate endDate, int roomNumber,int page, int size);
 }

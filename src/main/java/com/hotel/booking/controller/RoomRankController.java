@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,9 +52,18 @@ public class RoomRankController {
     @GetMapping()
     public ResponseEntity<?> getList(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
-    ){
-        return roomRankService.getList(page,size);
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false)LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate,
+            @RequestParam(defaultValue = "1") int roomNumber
+            ){
+        if (startDate == null) {
+            startDate = LocalDate.now();
+        }
+        if (endDate == null) {
+            endDate = LocalDate.now().plusDays(1);
+        }
+        return roomRankService.getList(roomNumber,startDate,endDate,page,size);
     }
     @GetMapping("active/{id}")
     public ResponseEntity<?> doActive(@PathVariable int id){

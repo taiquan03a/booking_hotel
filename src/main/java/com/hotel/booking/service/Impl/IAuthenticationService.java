@@ -54,7 +54,13 @@ public class IAuthenticationService implements AuthenticationService {
 
         var existedUser = userRepository.findByEmail(request.getEmail());
         if (existedUser.isPresent())
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(EMAIL_IN_USE);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.builder()
+                    .statusCode(409)
+                    .message(String.valueOf(HttpStatus.CONFLICT))
+                    .description(EMAIL_IN_USE)
+                    .timestamp(new Date(System.currentTimeMillis()))
+                    .build());
+
         var role = new HashSet<Role>();
         role.add(roleRepository.findRoleByRole(EnumRole.ROLE_USER.name()));
         var user = new User();

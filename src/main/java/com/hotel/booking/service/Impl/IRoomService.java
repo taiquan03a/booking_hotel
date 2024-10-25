@@ -2,10 +2,7 @@ package com.hotel.booking.service.Impl;
 
 import com.hotel.booking.dto.ApiResponse;
 import com.hotel.booking.dto.policy.PolicyDto;
-import com.hotel.booking.dto.room.CreateRoomRequest;
-import com.hotel.booking.dto.room.EditRoomRequest;
-import com.hotel.booking.dto.room.RoomAdminResponse;
-import com.hotel.booking.dto.room.RoomStatus;
+import com.hotel.booking.dto.room.*;
 import com.hotel.booking.dto.roomDetail.RoomDetailResponse;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
@@ -26,6 +23,7 @@ import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,8 +36,8 @@ public class IRoomService implements RoomService {
     final private RoomDetailRepository roomDetailRepository;
     final private PolicyTypeRepository policyTypeRepository;
     private final PolicyMapper policyMapper;
-//    private final RoomDetailMapper roomDetailMapper;
-//    private final RoomServiceMapper roomServiceMapper;
+    private final RoomDetailMapper roomDetailMapper;
+    private final RoomServiceMapper roomServiceMapper;
 
     @Override
     public ResponseEntity<?> createRoom(CreateRoomRequest createRoomRequest, Principal principal) {
@@ -211,8 +209,8 @@ public class IRoomService implements RoomService {
                 .quantity(room.getQuantity())
                 .rate(room.getRate())
                 .policyList(policyMapper.toResponseList(room.getPolicies()))
-//                .roomDetailList(roomDetailMapper.toResponseList(room.getRoomDetails()))
-//                .roomServiceList(roomServiceMapper.toResponseList(room.getService()))
+                .roomDetailList(RoomDetailMapper.INSTANCE.toRoomDetailResponseList(room.getRoomDetails()))
+                .roomServiceList(RoomServiceMapper.INSTANCE.toRoomServiceResponseList(room.getService()))
                 .build();
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -234,4 +232,40 @@ public class IRoomService implements RoomService {
     public ResponseEntity<?> getRoomById(int id) {
         return null;
     }
+
+    @Override
+    public ResponseEntity<?> getRoomByRank(int rankId) {
+        RoomRank rank = roomRankRepository.findById(rankId).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+        List<Room> roomList = roomRepository.findAllByRoomRank(rank);
+        List<RoomUserResponse> roomUserResponseList = new ArrayList<>();
+        for(Room room : roomList) {
+            List<RoomDetail> roomAvailable = room.getRoomDetails()
+                    .stream()
+                    .filter(roomDetail -> RoomStatus.AVAILABLE.equals(roomDetail.getStatus()))
+                    .toList();
+            RoomUserResponse roomResponse = RoomUserResponse.builder()
+                    .id(room.getId())
+                    .name(room.getName())
+                    .description(room.getDescription())
+                    .price(room.getPrice())
+                    .adultNumber(room.getAdultNumber())
+                    .adultMax(room.getAdultMax())
+                    .quantity(roomAvailable.size())
+                    .policyList(policyMapper.toResponseList(room.getPolicies()))
+                    .roomServiceList(RoomServiceMapper.INSTANCE.toRoomServiceResponseList(room.getService()))
+                    .build();
+            roomUserResponseList.add(roomResponse);
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Successfully List room by rank room for user")
+                                .data(roomUserResponseList)
+                                .build()
+                );
+    }
+
 }
