@@ -1,18 +1,22 @@
 package com.hotel.booking.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "service_hotel")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class ServiceHotel {
     @Id
     @Column(name = "id", nullable = false)
@@ -35,9 +39,11 @@ public class ServiceHotel {
     private String capacity;
 
     @Column(name = "open_time")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss",timezone = "Asia/Ho_Chi_Minh")
     private LocalTime openTime;
 
     @Column(name = "close_time")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss",timezone = "Asia/Ho_Chi_Minh")
     private LocalTime closeTime;
 
     @Size(max = 255)
@@ -48,15 +54,16 @@ public class ServiceHotel {
     @Column(name = "active")
     private Boolean active;
 
-    @Column(name = "image_id")
-    private Integer imageId;
+    @Column(name = "image")
+    private String image;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "category_id")
     private ServiceCategory category;
 
     @Column(name = "create_at")
-    private Instant createAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    private LocalDateTime createAt;
 
     @Size(max = 255)
     @Nationalized
@@ -64,7 +71,8 @@ public class ServiceHotel {
     private String createBy;
 
     @Column(name = "update_at")
-    private Instant updateAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    private LocalDateTime updateAt;
 
     @Size(max = 255)
     @Nationalized

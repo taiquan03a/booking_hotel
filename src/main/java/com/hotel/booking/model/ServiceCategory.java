@@ -1,5 +1,8 @@
 package com.hotel.booking.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -7,6 +10,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -14,6 +18,7 @@ import java.util.Set;
 @Setter
 @Entity
 @Table(name = "service_category")
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceCategory {
     @Id
     @Column(name = "id", nullable = false)
@@ -30,11 +35,12 @@ public class ServiceCategory {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "actice")
-    private Boolean actice;
+    @Column(name = "active")
+    private Boolean active;
 
     @Column(name = "create_at")
-    private Instant createAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    private LocalDateTime createAt;
 
     @Size(max = 255)
     @Nationalized
@@ -42,13 +48,15 @@ public class ServiceCategory {
     private String createBy;
 
     @Column(name = "update_at")
-    private Instant updateAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    private LocalDateTime updateAt;
 
     @Size(max = 255)
     @Nationalized
     @Column(name = "update_by")
     private String updateBy;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "category")
     private Set<ServiceHotel> serviceHotels = new LinkedHashSet<>();
 
