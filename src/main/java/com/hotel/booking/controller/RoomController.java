@@ -28,4 +28,8 @@ public class RoomController {
     ResponseEntity<?> getRoomById(@PathVariable("id") int id, Principal principal) {
         return roomService.getRoom(id);
     }
+    @GetMapping("/getByRank/{rankId}")
+    ResponseEntity<?> getRoomByRank(@PathVariable() int rankId) {
+        return roomService.getRoomByRank(rankId);
+    }
 }

@@ -55,7 +55,7 @@ public class IRoomRankService implements RoomRankService {
             List<Room> activeRooms = new ArrayList<>();
             for(Room room : rooms){
                 if(room.getActive()){
-                    List<RoomDetail> roomDetails = room.getRoomDetails().stream().filter(roomDetail -> RoomStatus.AVAILABLE.equals(roomDetail.getStatus())).toList();
+                    List<RoomDetail> roomDetails = room.getRoomDetails().stream().filter(roomDetail -> String.valueOf(RoomStatus.AVAILABLE).equals(roomDetail.getStatus())).toList();
                     System.out.println(roomNumber + " " + roomDetails.size());
                     if(roomDetails.size() >= roomNumber){
                         activeRooms.add(room);

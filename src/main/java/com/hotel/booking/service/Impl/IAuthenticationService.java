@@ -131,7 +131,7 @@ public class IAuthenticationService implements AuthenticationService {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.builder()
                         .statusCode(HttpStatus.BAD_REQUEST.value())
                         .message(String.valueOf(HttpStatus.BAD_REQUEST))
-                        .description(INCORRECT_PASSWORD_OR_EMAIL)
+                        .description(INCORRECT_PASSWORD)
                         .timestamp(new Date(System.currentTimeMillis()))
                         .build());
             } else {
@@ -167,9 +167,9 @@ public class IAuthenticationService implements AuthenticationService {
 
         } else
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponse.builder()
-                    .statusCode(400)
+                    .statusCode(HttpStatus.NOT_FOUND.value())
                     .message(String.valueOf(HttpStatus.NOT_FOUND))
-                    .description(INCORRECT_PASSWORD_OR_EMAIL)
+                    .description(EMAIL_NOT_FOUND)
                     .timestamp(new Date(System.currentTimeMillis()))
                     .build());
 

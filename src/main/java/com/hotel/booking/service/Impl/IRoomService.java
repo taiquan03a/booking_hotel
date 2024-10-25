@@ -241,22 +241,24 @@ public class IRoomService implements RoomService {
         for(Room room : roomList) {
             List<RoomDetail> roomAvailable = room.getRoomDetails()
                     .stream()
-                    .filter(roomDetail -> RoomStatus.AVAILABLE.equals(roomDetail.getStatus()))
+                    .filter(roomDetail -> String.valueOf(RoomStatus.AVAILABLE).equals(roomDetail.getStatus()))
                     .toList();
-            RoomUserResponse roomResponse = RoomUserResponse.builder()
-                    .id(room.getId())
-                    .name(room.getName())
-                    .description(room.getDescription())
-                    .price(room.getPrice())
-                    .adultNumber(room.getAdultNumber())
-                    .adultMax(room.getAdultMax())
-                    .quantity(roomAvailable.size())
-                    .policyList(policyMapper.toResponseList(room.getPolicies()))
-                    .roomServiceList(RoomServiceMapper.INSTANCE.toRoomServiceResponseList(room.getService()))
-                    .build();
-            roomUserResponseList.add(roomResponse);
-        }
+            if(!roomAvailable.isEmpty()){
+                RoomUserResponse roomResponse = RoomUserResponse.builder()
+                        .id(room.getId())
+                        .name(room.getName())
+                        .description(room.getDescription())
+                        .price(room.getPrice())
+                        .adultNumber(room.getAdultNumber())
+                        .adultMax(room.getAdultMax())
+                        .quantity(roomAvailable.size())
+                        .policyList(policyMapper.toResponseList(room.getPolicies()))
+                        .roomServiceList(RoomServiceMapper.INSTANCE.toRoomServiceResponseList(room.getService()))
+                        .build();
+                roomUserResponseList.add(roomResponse);
+            }
 
+        }
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
