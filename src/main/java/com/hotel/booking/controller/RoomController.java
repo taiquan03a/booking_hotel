@@ -32,4 +32,12 @@ public class RoomController {
     ResponseEntity<?> getRoomByRank(@PathVariable() int rankId) {
         return roomService.getRoomByRank(rankId);
     }
+    @GetMapping("admin/getAll")
+    ResponseEntity<?> getRoomByRankAdmin(@RequestParam(required = false) String rankId) {
+        return roomService.getAllByAdmin(rankId);
+    }
+    @PostMapping("admin/active/{roomId}")
+    ResponseEntity<?> getRoomByRankAdminActive(@PathVariable int roomId, Principal principal) {
+        return roomService.deleteRoom(roomId,principal);
+    }
 }

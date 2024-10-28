@@ -31,5 +31,9 @@ public class ServiceHotelController {
     public ResponseEntity<?> active(@PathVariable("id") Integer id){
         return serviceHotelService.deleteServiceHotel(id);
     }
+    @GetMapping("category/getAll")
+    public ResponseEntity<?> getAllServiceHotelCategory(){
+        return serviceHotelService.getAllCategory();
+    }
 
 }

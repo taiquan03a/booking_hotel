@@ -13,4 +13,5 @@ public interface ServiceHotelService {
     ResponseEntity<?> deleteServiceHotel(Integer id);
     ResponseEntity<?> getServiceHotelById(Long id);
     ResponseEntity<?> getAllServiceHotels();
+    ResponseEntity<?> getAllCategory();
 }

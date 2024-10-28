@@ -41,13 +41,8 @@ public class RoomRankController {
         return roomRankService.editRoomRank(request,principal);
     }
     @GetMapping("admin")
-    public ResponseEntity<?> getListByAdmin(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "desc") String direction
-    ){
-        return roomRankService.getListByAdmin(page,size,sortBy,direction);
+    public ResponseEntity<?> getListByAdmin(){
+        return roomRankService.getListByAdmin();
     }
     @GetMapping()
     public ResponseEntity<?> getList(
@@ -68,5 +63,13 @@ public class RoomRankController {
     @GetMapping("active/{id}")
     public ResponseEntity<?> doActive(@PathVariable int id){
         return roomRankService.active(id);
+    }
+    @GetMapping("bed")
+    public ResponseEntity<?> getAllBed(){
+        return roomRankService.getAllBed();
+    }
+    @GetMapping("amenity")
+    public ResponseEntity<?> getAllAmenities(){
+        return roomRankService.getAllAmenity();
     }
 }

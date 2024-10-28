@@ -4,10 +4,12 @@ import com.hotel.booking.dto.ApiResponse;
 import com.hotel.booking.dto.bed.BedDto;
 import com.hotel.booking.dto.rankRoom.CreateRankRoomRequest;
 import com.hotel.booking.dto.rankRoom.EditRankRoomRequest;
+import com.hotel.booking.dto.rankRoom.RankRoomResponseAdmin;
 import com.hotel.booking.dto.rankRoom.RankRoomResponseUser;
 import com.hotel.booking.dto.room.RoomStatus;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
+import com.hotel.booking.mapping.RoomRankMapper;
 import com.hotel.booking.model.*;
 import com.hotel.booking.repository.*;
 import com.hotel.booking.service.CloudinaryService;
@@ -133,17 +135,15 @@ public class IRoomRankService implements RoomRankService {
                 .build();
     }
     @Override
-    public ResponseEntity<?> getListByAdmin(int page, int size, String sortBy, String direction) {
-        Sort sort = direction.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<RoomRank> ranks = roomRankRepository.findAll(pageable);
+    public ResponseEntity<?> getListByAdmin() {
+        List<RankRoomResponseAdmin> res = RoomRankMapper.INSTANCE.toRankRoomResponseAdminList(roomRankRepository.findAll());
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
                         ApiResponse.builder()
                                 .statusCode(HttpStatus.OK.value())
                                 .message("Successfully list room ranks")
-                                .data(ranks)
+                                .data(res)
                                 .build()
                 );
     }
@@ -154,6 +154,32 @@ public class IRoomRankService implements RoomRankService {
         Page<RoomRank> ranks = roomRankRepository.findByActiveTrue(pageable);
 
         return null;
+    }
+
+    @Override
+    public ResponseEntity<?> getAllBed() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Successfully list room ranks")
+                                .data(bedRepository.findAll())
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> getAllAmenity() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Successfully list room ranks")
+                                .data(amenityRepository.findAll())
+                                .build()
+                );
     }
 
     @Override

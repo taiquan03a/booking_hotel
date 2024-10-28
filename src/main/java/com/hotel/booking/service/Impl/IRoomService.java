@@ -8,6 +8,7 @@ import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
 import com.hotel.booking.mapping.PolicyMapper;
 import com.hotel.booking.mapping.RoomDetailMapper;
+import com.hotel.booking.mapping.RoomMapper;
 import com.hotel.booking.mapping.RoomServiceMapper;
 import com.hotel.booking.model.*;
 import com.hotel.booking.repository.*;
@@ -101,7 +102,21 @@ public class IRoomService implements RoomService {
 
     @Override
     public ResponseEntity<?> deleteRoom(int roomId, Principal principal) {
-        return null;
+        var user = (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+        Room room = roomRepository.findById(roomId).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
+        room.setActive(!room.getActive());
+        room.setUpdateAt(LocalDateTime.now());
+        room.setUpdateBy(user.getEmail());
+        roomRepository.save(room);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Successfully active/inactive a room")
+                                .data(room)
+                                .build()
+                );
     }
 
     @Override
@@ -238,12 +253,12 @@ public class IRoomService implements RoomService {
         RoomRank rank = roomRankRepository.findById(rankId).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
         List<Room> roomList = roomRepository.findAllByRoomRank(rank);
         List<RoomUserResponse> roomUserResponseList = new ArrayList<>();
-        for(Room room : roomList) {
+        for (Room room : roomList) {
             List<RoomDetail> roomAvailable = room.getRoomDetails()
                     .stream()
                     .filter(roomDetail -> String.valueOf(RoomStatus.AVAILABLE).equals(roomDetail.getStatus()))
                     .toList();
-            if(!roomAvailable.isEmpty()){
+            if (!roomAvailable.isEmpty()) {
                 RoomUserResponse roomResponse = RoomUserResponse.builder()
                         .id(room.getId())
                         .name(room.getName())
@@ -266,6 +281,26 @@ public class IRoomService implements RoomService {
                                 .statusCode(HttpStatus.OK.value())
                                 .message("Successfully List room by rank room for user")
                                 .data(roomUserResponseList)
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> getAllByAdmin(String rankId) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Successfully List room by rank room for admin")
+                                .data(
+                                        RoomMapper.INSTANCE.toRoomResponseList(
+                                                roomRepository.findAll().
+                                                        stream()
+                                                        .filter(room -> rankId == null || room.getRoomRank().getId() == Integer.parseInt(rankId) && room.getActive())
+                                                        .collect(Collectors.toList())
+                                        )
+                                )
                                 .build()
                 );
     }

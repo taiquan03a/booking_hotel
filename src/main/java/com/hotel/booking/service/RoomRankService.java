@@ -13,6 +13,8 @@ public interface RoomRankService {
     ResponseEntity<?> createRoomRank(CreateRankRoomRequest request, Principal principal) throws  IOException;
     ResponseEntity<?> editRoomRank(EditRankRoomRequest request,Principal principal) throws IOException;
     ResponseEntity<?> active(int rankId);
-    ResponseEntity<?> getListByAdmin(int page, int size,String sortBy,String direction);
+    ResponseEntity<?> getListByAdmin();
     ResponseEntity<?> filter(LocalDate startDate, LocalDate endDate, int roomNumber,int page, int size);
+    ResponseEntity<?> getAllBed();
+    ResponseEntity<?> getAllAmenity();
 }

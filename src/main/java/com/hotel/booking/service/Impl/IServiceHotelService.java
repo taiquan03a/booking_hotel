@@ -135,4 +135,17 @@ public class IServiceHotelService implements ServiceHotelService {
                                 .build()
                 );
     }
+
+    @Override
+    public ResponseEntity<?> getAllCategory() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Successfully get all category service hotel")
+                                .data(categoryRepository.findAll())
+                                .build()
+                );
+    }
 }
