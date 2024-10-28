@@ -1,9 +1,11 @@
 package com.hotel.booking.controller;
 
+import com.hotel.booking.dto.Test;
 import com.hotel.booking.dto.rankRoom.CreateRankRoomRequest;
 import com.hotel.booking.dto.rankRoom.EditRankRoomRequest;
 import com.hotel.booking.service.CloudinaryService;
 import com.hotel.booking.service.RoomRankService;
+import com.hotel.booking.service.ServiceHotelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
@@ -32,7 +34,7 @@ public class RoomRankController {
             return ResponseEntity.status(500).body("Image upload failed");
         }
     }
-    @PostMapping()
+    @PostMapping("create")
     public ResponseEntity<?> createRank(@ModelAttribute CreateRankRoomRequest request, Principal principal) throws IOException {
         return roomRankService.createRoomRank(request,principal);
     }
