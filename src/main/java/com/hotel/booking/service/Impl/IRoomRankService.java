@@ -158,13 +158,14 @@ public class IRoomRankService implements RoomRankService {
 
     @Override
     public ResponseEntity<?> getAllBed() {
+        List<Bed> x = bedRepository.findAll();
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
                         ApiResponse.builder()
                                 .statusCode(HttpStatus.OK.value())
-                                .message("Successfully list room ranks")
-                                .data(bedRepository.findAll())
+                                .message("Successfully list bed")
+                                .data(x)
                                 .build()
                 );
     }
@@ -176,7 +177,7 @@ public class IRoomRankService implements RoomRankService {
                 .body(
                         ApiResponse.builder()
                                 .statusCode(HttpStatus.OK.value())
-                                .message("Successfully list room ranks")
+                                .message("Successfully list amenity")
                                 .data(amenityRepository.findAll())
                                 .build()
                 );
