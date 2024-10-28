@@ -1,6 +1,7 @@
 package com.hotel.booking.mapping;
 
 import com.hotel.booking.dto.AmenityDto;
+import com.hotel.booking.dto.ImageDto;
 import com.hotel.booking.dto.bed.BedDto;
 import com.hotel.booking.dto.rankRoom.RankRoomResponseAdmin;
 import com.hotel.booking.model.Amenity;
@@ -50,9 +51,10 @@ public interface RoomRankMapper {
         return roomBeds.stream().map(this::toBedDto).toList();
     }
     @Named("toImagePathList")
-    default List<String> toImagePathList(List<Image> images) {
-        return images.stream()
-                .map(Image::getPath)
-                .toList();
+    @Mapping(target = "id",source = "id")
+    @Mapping(target = "path",source = "path")
+    ImageDto toImageDto(Image image);
+    default List<ImageDto> toImagePathList(List<Image> images) {
+        return images.stream().map(this::toImageDto).toList();
     }
 }

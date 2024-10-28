@@ -15,4 +15,5 @@ public class EditRankRoomRequest {
     private List<Integer> amenityId;
     private String description;
     private List<MultipartFile> images;
+    private List<Integer> imageId;
 }

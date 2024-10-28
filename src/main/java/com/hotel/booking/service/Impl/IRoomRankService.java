@@ -253,6 +253,12 @@ public class IRoomRankService implements RoomRankService {
                     .build();
             roomBedList.add(roomBed);
         }
+        for(Image image : roomRankCurrent.getImages()){
+            if(!request.getImageId().contains(image.getId())){
+                System.out.println(image.getId());
+                imageRepository.delete(image);
+            }
+        }
         if(!roomRankCurrent.getRoomBeds().isEmpty()){
             roomBedRepository.deleteAll(roomRankCurrent.getRoomBeds());
             System.out.println("delete bed");
@@ -308,10 +314,10 @@ public class IRoomRankService implements RoomRankService {
                     .build();
             images.add(image);
         }
-        if(!room.getImages().isEmpty()){
-            imageRepository.deleteAll(room.getImages());
-            System.out.println("delete image");
-        }
+//        if(!room.getImages().isEmpty()){
+//            imageRepository.deleteAll(room.getImages());
+//            System.out.println("delete image");
+//        }
 
         imageRepository.saveAll(images);
         room.setRoomBeds(roomBedList);
