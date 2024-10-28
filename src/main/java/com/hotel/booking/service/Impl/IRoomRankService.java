@@ -136,7 +136,7 @@ public class IRoomRankService implements RoomRankService {
     }
     @Override
     public ResponseEntity<?> getListByAdmin() {
-        List<RankRoomResponseAdmin> res = RoomRankMapper.INSTANCE.toRankRoomResponseAdminList(roomRankRepository.findAll());
+        List<RankRoomResponseAdmin> res = RoomRankMapper.INSTANCE.toRankRoomResponseAdminList(roomRankRepository.findAll(Sort.by(Sort.Direction.DESC, "id")));
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(

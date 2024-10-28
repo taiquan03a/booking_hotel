@@ -38,7 +38,7 @@ public class RoomRankController {
     public ResponseEntity<?> createRank(@ModelAttribute CreateRankRoomRequest request, Principal principal) throws IOException {
         return roomRankService.createRoomRank(request,principal);
     }
-    @PutMapping()
+    @PutMapping("edit")
     public ResponseEntity<?> editRank(@ModelAttribute EditRankRoomRequest request, Principal principal) throws IOException {
         return roomRankService.editRoomRank(request,principal);
     }

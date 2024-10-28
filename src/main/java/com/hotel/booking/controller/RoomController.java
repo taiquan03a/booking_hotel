@@ -16,11 +16,11 @@ import java.security.Principal;
 public class RoomController {
     final private RoomService roomService;
 
-    @PostMapping()
+    @PostMapping("create")
     ResponseEntity<?> addRoom(@RequestBody CreateRoomRequest room, Principal principal) {
         return roomService.createRoom(room,principal);
     }
-    @PutMapping()
+    @PutMapping("edit")
     ResponseEntity<?> updateRoom(@RequestBody EditRoomRequest room, Principal principal) {
         return roomService.editRoom(room,principal);
     }
