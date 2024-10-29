@@ -19,11 +19,11 @@ public class ServiceHotelController {
     public ResponseEntity<?> getServiceHotel() {
         return serviceHotelService.getAllServiceHotels();
     }
-    @PostMapping()
+    @PostMapping("create")
     public ResponseEntity<?> addServiceHotel(@ModelAttribute CreateServiceHotel serviceHotel, Principal principal) {
         return serviceHotelService.addServiceHotel(serviceHotel,principal);
     }
-    @PutMapping()
+    @PutMapping("edit")
     public ResponseEntity<?> updateServiceHotel(@ModelAttribute UpdateServiceHotel serviceHotel, Principal principal) {
         return serviceHotelService.updateServiceHotel(serviceHotel,principal);
     }
@@ -34,6 +34,10 @@ public class ServiceHotelController {
     @GetMapping("category/getAll")
     public ResponseEntity<?> getAllServiceHotelCategory(){
         return serviceHotelService.getAllCategory();
+    }
+    @GetMapping("category/get-service")
+    private ResponseEntity<?> getServiceHotelCategory(){
+        return serviceHotelService.getByCategory();
     }
 
 }

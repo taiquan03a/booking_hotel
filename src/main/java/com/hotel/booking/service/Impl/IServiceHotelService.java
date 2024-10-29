@@ -1,10 +1,13 @@
 package com.hotel.booking.service.Impl;
 
 import com.hotel.booking.dto.ApiResponse;
+import com.hotel.booking.dto.category.CategoryDto;
 import com.hotel.booking.dto.serviceHotel.CreateServiceHotel;
+import com.hotel.booking.dto.serviceHotel.ServiceDto;
 import com.hotel.booking.dto.serviceHotel.UpdateServiceHotel;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
+import com.hotel.booking.model.ServiceCategory;
 import com.hotel.booking.model.ServiceHotel;
 import com.hotel.booking.model.User;
 import com.hotel.booking.repository.CategoryRepository;
@@ -20,7 +23,8 @@ import org.springframework.validation.BindingResult;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
-
+import java.util.ArrayList;
+import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class IServiceHotelService implements ServiceHotelService {
@@ -145,6 +149,45 @@ public class IServiceHotelService implements ServiceHotelService {
                                 .statusCode(HttpStatus.OK.value())
                                 .message("Successfully get all category service hotel")
                                 .data(categoryRepository.findAll())
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> getByCategory() {
+        List<ServiceCategory> categoryList = categoryRepository.findAll();
+        List<CategoryDto> categoryDtoList = new ArrayList<>();
+        for(ServiceCategory category: categoryList){
+            if(category.getActive()){
+                List<ServiceDto> serviceDtoList = new ArrayList<>();
+                for(ServiceHotel serviceHotel: serviceHotelRepository.findServiceHotelsByCategory(category)){
+                    ServiceDto serviceDto = ServiceDto.builder()
+                            .name(serviceHotel.getName())
+                            .description(serviceHotel.getDescription())
+                            .image(serviceHotel.getImage())
+                            .endTime(serviceHotel.getCloseTime())
+                            .startTime(serviceHotel.getOpenTime())
+                            .capacity(serviceHotel.getCapacity())
+                            .location(serviceHotel.getLocation())
+                            .build();
+                    serviceDtoList.add(serviceDto);
+                }
+                CategoryDto categoryDto = CategoryDto.builder()
+                        .id(category.getId())
+                        .name(category.getName())
+                        .description(category.getDescription())
+                        .serviceHotelList(serviceDtoList)
+                        .build();
+                categoryDtoList.add(categoryDto);
+            }
+        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Successfully get service hotels by category")
+                                .data(categoryDtoList)
                                 .build()
                 );
     }

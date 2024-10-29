@@ -12,7 +12,7 @@ import org.hibernate.annotations.Nationalized;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -58,6 +58,6 @@ public class ServiceCategory {
 
     @JsonIgnore
     @OneToMany(mappedBy = "category")
-    private Set<ServiceHotel> serviceHotels = new LinkedHashSet<>();
+    private List<ServiceHotel> serviceHotels ;
 
 }
