@@ -62,7 +62,7 @@ public class RoomRankController {
         }
         return roomRankService.getList(roomNumber,startDate,endDate,page,size);
     }
-    @GetMapping("active/{id}")
+    @PostMapping("active/{id}")
     public ResponseEntity<?> doActive(@PathVariable int id){
         return roomRankService.active(id);
     }
