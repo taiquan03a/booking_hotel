@@ -27,7 +27,7 @@ public class ServiceHotelController {
     public ResponseEntity<?> updateServiceHotel(@ModelAttribute UpdateServiceHotel serviceHotel, Principal principal) {
         return serviceHotelService.updateServiceHotel(serviceHotel,principal);
     }
-    @PostMapping("active/{id}")
+    @GetMapping("active/{id}")
     public ResponseEntity<?> active(@PathVariable("id") Integer id){
         return serviceHotelService.deleteServiceHotel(id);
     }
