@@ -1,7 +1,6 @@
 package com.hotel.booking.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import jakarta.persistence.*;
@@ -17,6 +16,7 @@ import java.util.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Table(name = "users")
 public class User implements UserDetails {
 

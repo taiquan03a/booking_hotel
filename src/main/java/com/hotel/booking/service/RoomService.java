@@ -1,5 +1,6 @@
 package com.hotel.booking.service;
 
+import com.hotel.booking.dto.placeRoom.PlaceRoomRequest;
 import com.hotel.booking.dto.room.CreateRoomRequest;
 import com.hotel.booking.dto.room.EditRoomRequest;
 import com.hotel.booking.model.Room;
@@ -18,5 +19,5 @@ public interface RoomService {
     ResponseEntity<?> getRoomByRank(int rankId);
     ResponseEntity<?> getAllByAdmin(String rankId);
     ResponseEntity<?> getAllPolicyType();
-    //ResponseEntity<?> placeRoom();
+    ResponseEntity<?> placeRoom(PlaceRoomRequest placeRoomRequest, Principal principal);
 }

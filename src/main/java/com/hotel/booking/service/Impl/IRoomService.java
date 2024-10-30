@@ -1,6 +1,7 @@
 package com.hotel.booking.service.Impl;
 
 import com.hotel.booking.dto.ApiResponse;
+import com.hotel.booking.dto.placeRoom.PlaceRoomRequest;
 import com.hotel.booking.dto.policy.PolicyDto;
 import com.hotel.booking.dto.room.*;
 import com.hotel.booking.exception.AppException;
@@ -317,6 +318,13 @@ public class IRoomService implements RoomService {
                                 .data(policyTypeRepository.findAll())
                                 .build()
                 );
+    }
+
+    @Override
+    public ResponseEntity<?> placeRoom(PlaceRoomRequest placeRoomRequest, Principal principal) {
+        User user = (principal != null) ? (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal() : null;
+
+        return null;
     }
 
 }
