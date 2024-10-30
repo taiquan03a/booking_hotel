@@ -3,7 +3,6 @@ package com.hotel.booking.service.Impl;
 import com.hotel.booking.dto.ApiResponse;
 import com.hotel.booking.dto.policy.PolicyDto;
 import com.hotel.booking.dto.room.*;
-import com.hotel.booking.dto.roomDetail.RoomDetailResponse;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
 import com.hotel.booking.mapping.PolicyMapper;
@@ -39,6 +38,7 @@ public class IRoomService implements RoomService {
     private final PolicyMapper policyMapper;
     private final RoomDetailMapper roomDetailMapper;
     private final RoomServiceMapper roomServiceMapper;
+    private final RoomMapper roomMapper;
 
     @Override
     public ResponseEntity<?> createRoom(CreateRoomRequest createRoomRequest, Principal principal) {
@@ -219,6 +219,7 @@ public class IRoomService implements RoomService {
                 .name(room.getName())
                 .description(room.getDescription())
                 .price(room.getPrice())
+                .roomRank(room.getRoomRank().getName())
                 .adultNumber(room.getAdultNumber())
                 .adultMax(room.getAdultMax())
                 .quantity(room.getQuantity())
@@ -294,13 +295,26 @@ public class IRoomService implements RoomService {
                                 .statusCode(HttpStatus.OK.value())
                                 .message("Successfully List room by rank room for admin")
                                 .data(
-                                        RoomMapper.INSTANCE.toRoomResponseList(
+                                        roomMapper.toRoomResponseList(
                                                 roomRepository.findAll().
                                                         stream()
                                                         .filter(room -> rankId == null || room.getRoomRank().getId() == Integer.parseInt(rankId) && room.getActive())
                                                         .collect(Collectors.toList())
                                         )
                                 )
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> getAllPolicyType() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Successfully List room by rank room for user")
+                                .data(policyTypeRepository.findAll())
                                 .build()
                 );
     }

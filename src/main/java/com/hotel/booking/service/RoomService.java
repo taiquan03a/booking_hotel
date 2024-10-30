@@ -17,5 +17,6 @@ public interface RoomService {
     ResponseEntity<?> getRoomById(int id);
     ResponseEntity<?> getRoomByRank(int rankId);
     ResponseEntity<?> getAllByAdmin(String rankId);
+    ResponseEntity<?> getAllPolicyType();
     //ResponseEntity<?> placeRoom();
 }

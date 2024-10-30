@@ -47,7 +47,7 @@ public class Room {
     private Integer adultMax;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "room_rank_id")
     private RoomRank roomRank;
 
@@ -60,7 +60,7 @@ public class Room {
     private List<RoomDetail> roomDetails = new ArrayList<>();
 
     @JsonIgnore
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "service_room",
             joinColumns = @JoinColumn(name = "room_id"),
             inverseJoinColumns = @JoinColumn(name = "service_id"))

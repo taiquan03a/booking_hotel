@@ -40,4 +40,8 @@ public class RoomController {
     ResponseEntity<?> getRoomByRankAdminActive(@PathVariable int roomId, Principal principal) {
         return roomService.deleteRoom(roomId,principal);
     }
+    @GetMapping("admin/policy_type/getAll")
+    ResponseEntity<?> getRoomByRankAdminPolicyType() {
+        return roomService.getAllPolicyType();
+    }
 }
