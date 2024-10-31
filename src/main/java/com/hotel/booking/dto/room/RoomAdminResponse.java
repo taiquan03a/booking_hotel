@@ -21,6 +21,7 @@ public class RoomAdminResponse {
     private int adultNumber;
     private int adultMax;
     private int quantity;
+    private boolean active;
     private String roomRank;
     private Double rate;
     private List<PolicyResponse> policyList;
