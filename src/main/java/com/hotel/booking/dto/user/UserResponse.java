@@ -18,7 +18,7 @@ public class UserResponse {
     private String firstName;
     private String lastName;
     private String phone;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy", timezone = "Asia/Ho_Chi_Minh")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Ho_Chi_Minh")
     private LocalDate birthday;
     private Role role;
     private boolean emailActive;
