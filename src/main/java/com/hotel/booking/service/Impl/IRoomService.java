@@ -74,6 +74,7 @@ public class IRoomService implements RoomService {
         List<RoomDetail> roomDetails = roomDetailRepository.findAllById(createRoomRequest.getRoomList());
         for(RoomDetail detail : roomDetails) {
             detail.setRoom(room);
+            detail.setRoomCode(detail.getLocation()+"_"+detail.getRoomNumber());
             roomDetailRepository.save(detail);
         }
 //        for (Integer roomNumber : createRoomRequest.getRoomList()) {
@@ -159,6 +160,7 @@ public class IRoomService implements RoomService {
         List<RoomDetail> roomDetails = roomDetailRepository.findAllById(room.getRoomList());
         for(RoomDetail detail : roomDetails) {
             detail.setRoom(roomCurrent);
+            detail.setRoomCode(detail.getLocation()+"_"+detail.getRoomNumber());
             roomDetailRepository.save(detail);
         }
         List<Policy> existingPolicies = roomCurrent.getPolicies();

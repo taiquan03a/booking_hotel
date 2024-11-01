@@ -27,9 +27,9 @@ public class RoomDetail {
     @JoinColumn(name = "room_id")
     private Room room;
 
-    @Size(max = 10)
+    @Size(max = 100)
     @Nationalized
-    @Column(name = "room_code", length = 10)
+    @Column(name = "room_code", length = 100)
     private String roomCode;
 
     @Column(name = "room_number")
