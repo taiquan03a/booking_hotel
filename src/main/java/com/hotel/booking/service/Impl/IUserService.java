@@ -165,15 +165,17 @@ public class IUserService implements UserService {
 
     @Override
     public ResponseEntity<?> editCustomer(EditCustomer customer) {
-        var existedUser = userRepository.findByEmail(customer.getEmail());
-        if (existedUser.isPresent())
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.builder()
-                    .statusCode(409)
-                    .message(String.valueOf(HttpStatus.CONFLICT))
-                    .description(EMAIL_IN_USE)
-                    .timestamp(new Date(System.currentTimeMillis()))
-                    .build());
         User user = userRepository.findById(customer.getUserId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+        if(!customer.getEmail().equals(user.getEmail())){
+            var existedUser = userRepository.findByEmail(customer.getEmail());
+            if (existedUser.isPresent())
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.builder()
+                        .statusCode(409)
+                        .message(String.valueOf(HttpStatus.CONFLICT))
+                        .description(EMAIL_IN_USE)
+                        .timestamp(new Date(System.currentTimeMillis()))
+                        .build());
+        }
         user.setEmail(customer.getEmail());
         user.setFirstName(customer.getFirstName());
         user.setLastName(customer.getLastName());
@@ -193,15 +195,17 @@ public class IUserService implements UserService {
 
     @Override
     public ResponseEntity<?> editUser(EditUserRequest user) {
-        var existedUser = userRepository.findByEmail(user.getEmail());
-        if (existedUser.isPresent())
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.builder()
-                    .statusCode(409)
-                    .message(String.valueOf(HttpStatus.CONFLICT))
-                    .description(EMAIL_IN_USE)
-                    .timestamp(new Date(System.currentTimeMillis()))
-                    .build());
         User user1 = userRepository.findById(user.getUserId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+        if(!user.getEmail().equals(user.getEmail())){
+            var existedUser = userRepository.findByEmail(user.getEmail());
+            if (existedUser.isPresent())
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.builder()
+                        .statusCode(409)
+                        .message(String.valueOf(HttpStatus.CONFLICT))
+                        .description(EMAIL_IN_USE)
+                        .timestamp(new Date(System.currentTimeMillis()))
+                        .build());
+        }
         user1.setEmail(user.getEmail());
         user1.setFirstName(user.getFirstName());
         user1.setLastName(user.getLastName());
