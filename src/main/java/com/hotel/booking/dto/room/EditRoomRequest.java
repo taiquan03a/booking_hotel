@@ -1,6 +1,7 @@
 package com.hotel.booking.dto.room;
 
 import com.hotel.booking.dto.policy.PolicyDto;
+import com.hotel.booking.dto.roomService.ServiceRoomRequest;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -16,6 +17,6 @@ public class EditRoomRequest {
     private int roomRank;
     private List<Integer> roomList;
     private List<PolicyDto> policyList;
-    private List<Integer> serviceList;
+    private List<ServiceRoomRequest> serviceList;
     private int roomId;
 }

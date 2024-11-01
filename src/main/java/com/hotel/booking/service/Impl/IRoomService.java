@@ -4,6 +4,7 @@ import com.hotel.booking.dto.ApiResponse;
 import com.hotel.booking.dto.placeRoom.PlaceRoomRequest;
 import com.hotel.booking.dto.policy.PolicyDto;
 import com.hotel.booking.dto.room.*;
+import com.hotel.booking.dto.roomService.ServiceRoomRequest;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
 import com.hotel.booking.mapping.PolicyMapper;
@@ -40,6 +41,7 @@ public class IRoomService implements RoomService {
     private final RoomDetailMapper roomDetailMapper;
     private final RoomServiceMapper roomServiceMapper;
     private final RoomMapper roomMapper;
+    private final ServiceRoomRepository serviceRoomRepository;
 
     @Override
     public ResponseEntity<?> createRoom(CreateRoomRequest createRoomRequest, Principal principal) {
@@ -56,7 +58,22 @@ public class IRoomService implements RoomService {
                     .build();
             policies.add(policy);
         }
-        List<RoomServiceModel> roomServices = roomServiceModelRepository.findAllById(createRoomRequest.getServiceList());
+        //List<RoomServiceModel> roomServices = roomServiceModelRepository.findAllById(createRoomRequest.getServiceList());
+        List<Integer> serviceIds = createRoomRequest.getServiceList()
+                .stream()
+                .map(ServiceRoomRequest::getServiceId)
+                .collect(Collectors.toList());
+        List<RoomServiceModel> roomServices = roomServiceModelRepository.findAllById(serviceIds);
+        List<ServiceRoom> serviceRoomList = new ArrayList<>();
+        for(ServiceRoomRequest request : createRoomRequest.getServiceList()) {
+            RoomServiceModel serviceModel = roomServiceModelRepository.findById(request.getServiceId()).orElseThrow(()->new AppException(ErrorCode.NOT_FOUND));
+            roomServices.add(serviceModel);
+            ServiceRoom serviceRoom = ServiceRoom.builder()
+                    .service(serviceModel)
+                    .price(request.getPrice())
+                    .build();
+            serviceRoomList.add(serviceRoom);
+        }
         Room room = Room.builder()
                 .name(createRoomRequest.getName())
                 .description(createRoomRequest.getDescription())
@@ -77,18 +94,10 @@ public class IRoomService implements RoomService {
             detail.setRoomCode(detail.getLocation()+"_"+detail.getRoomNumber());
             roomDetailRepository.save(detail);
         }
-//        for (Integer roomNumber : createRoomRequest.getRoomList()) {
-//            RoomDetail roomDetail = RoomDetail.builder()
-//                    .room(room)
-//                    .roomCode(String.valueOf(roomNumber))
-//                    .roomNumber(roomNumber)
-//                    .status(String.valueOf(RoomStatus.AVAILABLE))
-//                    .createAt(LocalDateTime.now())
-//                    .createBy(user.getEmail())
-//                    .build();
-//            roomDetails.add(roomDetail);
-//            roomDetailRepository.save(roomDetail);
-//        }
+        serviceRoomList.forEach(serviceRoom -> {
+            serviceRoom.setRoom(room);
+        });
+        serviceRoomRepository.saveAll(serviceRoomList);
         for (Policy policy : policies) {
             policy.setRoom(room);
             policyRepository.save(policy);
@@ -203,7 +212,12 @@ public class IRoomService implements RoomService {
                         });
             }
         }
-        List<RoomServiceModel> roomServices = roomServiceModelRepository.findAllById(room.getServiceList());
+        //List<RoomServiceModel> roomServices = roomServiceModelRepository.findAllById(room.getServiceList());
+        List<Integer> serviceIds = room.getServiceList()
+                .stream()
+                .map(ServiceRoomRequest::getServiceId)
+                .collect(Collectors.toList());
+        List<RoomServiceModel> roomServices = roomServiceModelRepository.findAllById(serviceIds);
         roomCurrent.setName(room.getName());
         roomCurrent.setDescription(room.getDescription());
         roomCurrent.setPrice(room.getPrice());
@@ -217,6 +231,12 @@ public class IRoomService implements RoomService {
         roomCurrent.setUpdateAt(LocalDateTime.now());
         roomCurrent.setUpdateBy(user.getEmail());
         roomRepository.save(roomCurrent);
+        for(ServiceRoomRequest serviceRoomRequest : room.getServiceList()) {
+            RoomServiceModel roomServiceModel = roomServiceModelRepository.findById(serviceRoomRequest.getServiceId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+            ServiceRoom serviceRoom = serviceRoomRepository.findByRoomAndService(roomCurrent, roomServiceModel);
+            serviceRoom.setPrice(serviceRoomRequest.getPrice());
+            //serviceRoomRepository.save(serviceRoom);
+        }
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
