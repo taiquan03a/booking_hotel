@@ -121,7 +121,7 @@ public class IUserService implements UserService {
                         ApiResponse.builder()
                                 .statusCode(HttpStatus.CREATED.value())
                                 .message("Successfully create user")
-                                .data(user)
+                                .data(UserMapper.INSTANCE.userToUserResponse(user))
                                 .build()
                 );
     }
@@ -158,7 +158,7 @@ public class IUserService implements UserService {
                         ApiResponse.builder()
                                 .statusCode(HttpStatus.CREATED.value())
                                 .message("Successfully create user")
-                                .data(user)
+                                .data(UserMapper.INSTANCE.userToUserResponse(user))
                                 .build()
                 );
     }
@@ -186,7 +186,7 @@ public class IUserService implements UserService {
                         ApiResponse.builder()
                                 .statusCode(HttpStatus.OK.value())
                                 .message("Successfully edit customer")
-                                .data(user)
+                                .data(UserMapper.INSTANCE.userToUserResponse(user))
                                 .build()
                 );
     }
