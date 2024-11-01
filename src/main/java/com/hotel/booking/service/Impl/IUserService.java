@@ -230,6 +230,7 @@ public class IUserService implements UserService {
     public ResponseEntity<?> activeUser(long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
         user.setActive(!user.isActive());
+        userRepository.save(user);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(

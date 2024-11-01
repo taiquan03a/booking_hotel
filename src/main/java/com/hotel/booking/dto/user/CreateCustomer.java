@@ -1,5 +1,6 @@
 package com.hotel.booking.dto.user;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -12,5 +13,6 @@ public class CreateCustomer {
     private String firstName;
     private String lastName;
     private String phone;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Ho_Chi_Minh")
     private Date birthday;
 }
