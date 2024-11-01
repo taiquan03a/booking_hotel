@@ -2,6 +2,9 @@ package com.hotel.booking.controller;
 
 import com.hotel.booking.dto.room.CreateRoomRequest;
 import com.hotel.booking.dto.room.EditRoomRequest;
+import com.hotel.booking.dto.roomDetail.CreateRoomDetail;
+import com.hotel.booking.dto.roomDetail.EditRoomDetail;
+import com.hotel.booking.service.RoomDetailService;
 import com.hotel.booking.service.RoomService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +18,7 @@ import java.security.Principal;
 @RequiredArgsConstructor
 public class RoomController {
     final private RoomService roomService;
+    final private RoomDetailService roomDetailService;
 
     @PostMapping("create")
     ResponseEntity<?> addRoom(@RequestBody CreateRoomRequest room, Principal principal) {
@@ -44,4 +48,28 @@ public class RoomController {
     ResponseEntity<?> getRoomByRankAdminPolicyType() {
         return roomService.getAllPolicyType();
     }
+    //        room detail
+
+    @GetMapping("admin/room_number/get")
+    ResponseEntity<?> getRoomNumber() {
+        return roomDetailService.viewRoom();
+    }
+    @PostMapping("admin/room_number/create")
+    ResponseEntity<?> createRoom(@RequestBody CreateRoomDetail room, Principal principal) {
+        return roomDetailService.createRoom(room,principal);
+    }
+    @PutMapping("admin/room_number/edit")
+    ResponseEntity<?> editRoom(@RequestBody EditRoomDetail room, Principal principal) {
+        return roomDetailService.editRoom(room,principal);
+    }
+    @GetMapping("admin/room_number/remove_room/{id}")
+    ResponseEntity<?> removeRoom(@PathVariable int id) {
+        return roomDetailService.deleteRoom(id);
+    }
+
+    @GetMapping("admin/room_number/all")
+    ResponseEntity<?> getAllRoom() {
+        return roomDetailService.getAll();
+    }
+
 }

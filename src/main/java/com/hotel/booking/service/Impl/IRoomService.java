@@ -71,19 +71,23 @@ public class IRoomService implements RoomService {
                 .createBy(user.getEmail())
                 .build();
         roomRepository.save(room);
-        List<RoomDetail> roomDetails = new ArrayList<>();
-        for (Integer roomNumber : createRoomRequest.getRoomList()) {
-            RoomDetail roomDetail = RoomDetail.builder()
-                    .room(room)
-                    .roomCode(String.valueOf(roomNumber))
-                    .roomNumber(roomNumber)
-                    .status(String.valueOf(RoomStatus.AVAILABLE))
-                    .createAt(LocalDateTime.now())
-                    .createBy(user.getEmail())
-                    .build();
-            roomDetails.add(roomDetail);
-            roomDetailRepository.save(roomDetail);
+        List<RoomDetail> roomDetails = roomDetailRepository.findAllById(createRoomRequest.getRoomList());
+        for(RoomDetail detail : roomDetails) {
+            detail.setRoom(room);
+            roomDetailRepository.save(detail);
         }
+//        for (Integer roomNumber : createRoomRequest.getRoomList()) {
+//            RoomDetail roomDetail = RoomDetail.builder()
+//                    .room(room)
+//                    .roomCode(String.valueOf(roomNumber))
+//                    .roomNumber(roomNumber)
+//                    .status(String.valueOf(RoomStatus.AVAILABLE))
+//                    .createAt(LocalDateTime.now())
+//                    .createBy(user.getEmail())
+//                    .build();
+//            roomDetails.add(roomDetail);
+//            roomDetailRepository.save(roomDetail);
+//        }
         for (Policy policy : policies) {
             policy.setRoom(room);
             policyRepository.save(policy);
@@ -136,17 +140,27 @@ public class IRoomService implements RoomService {
                             .createBy(user.getEmail())
                             .build();
                 }).toList();
-        List<RoomDetail> roomDetails = room.getRoomList().stream()
-                .map(roomNumber -> {
-                    return RoomDetail.builder()
-                            .room(roomCurrent)
-                            .roomCode(String.valueOf(roomNumber))
-                            .roomNumber(roomNumber)
-                            .status(String.valueOf(RoomStatus.AVAILABLE))
-                            .createAt(LocalDateTime.now())
-                            .createBy(user.getEmail())
-                            .build();
-                }).toList();
+//        List<RoomDetail> roomDetails = room.getRoomList().stream()
+//                .map(roomNumber -> {
+//                    return RoomDetail.builder()
+//                            .room(roomCurrent)
+//                            .roomCode(String.valueOf(roomNumber))
+//                            .roomNumber(roomNumber)
+//                            .status(String.valueOf(RoomStatus.AVAILABLE))
+//                            .createAt(LocalDateTime.now())
+//                            .createBy(user.getEmail())
+//                            .build();
+//                }).toList();
+        List<RoomDetail> roomDetailCurrent = roomCurrent.getRoomDetails();
+        for(RoomDetail detail : roomDetailCurrent) {
+            detail.setRoom(null);
+            roomDetailRepository.save(detail);
+        }
+        List<RoomDetail> roomDetails = roomDetailRepository.findAllById(room.getRoomList());
+        for(RoomDetail detail : roomDetails) {
+            detail.setRoom(roomCurrent);
+            roomDetailRepository.save(detail);
+        }
         List<Policy> existingPolicies = roomCurrent.getPolicies();
         existingPolicies.removeIf(existingPolicy ->
                 policies.stream().noneMatch(newPolicy -> newPolicy.getId() != null && newPolicy.getId().equals(existingPolicy.getId())));

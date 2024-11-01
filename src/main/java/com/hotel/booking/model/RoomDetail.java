@@ -35,6 +35,12 @@ public class RoomDetail {
     @Column(name = "room_number")
     private Integer roomNumber;
 
+    @Column(name = "capacity")
+    private Integer capacity;
+
+    @Column(name = "location")
+    private String location;
+
     @Size(max = 10)
     @Nationalized
     @Column(name = "status", length = 10)

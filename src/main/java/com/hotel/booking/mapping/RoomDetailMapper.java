@@ -15,6 +15,8 @@ public interface RoomDetailMapper {
     @Mapping(source = "id",target = "id")
     @Mapping(source = "roomNumber", target = "roomNumber")
     @Mapping(source = "roomCode", target = "roomCode")
+    @Mapping(source = "location",target = "location")
+    @Mapping(source = "capacity",target = "capacity")
     @Mapping(source = "status", target = "status")
     RoomDetailResponse toRoomDetailResponse(RoomDetail roomDetail);
     List<RoomDetailResponse> toRoomDetailResponseList(List<RoomDetail> roomDetails);
