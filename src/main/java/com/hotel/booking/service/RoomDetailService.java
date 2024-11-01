@@ -12,5 +12,6 @@ public interface RoomDetailService {
     ResponseEntity<?> createRoom(CreateRoomDetail roomDetail, Principal principal);
     ResponseEntity<?> editRoom(EditRoomDetail roomDetail,Principal principal);
     ResponseEntity<?> deleteRoom(int id);
+    ResponseEntity<?> deleteRoomDetail(int id);
     ResponseEntity<?> viewRoom();
 }

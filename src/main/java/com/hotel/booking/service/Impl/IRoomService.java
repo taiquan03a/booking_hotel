@@ -343,4 +343,17 @@ public class IRoomService implements RoomService {
         return null;
     }
 
+    @Override
+    public ResponseEntity<?> getAllServiceRoom() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Successfully List service for room")
+                                .data(RoomServiceMapper.INSTANCE.toRoomServiceResponseList(roomServiceModelRepository.findAll().stream().filter(RoomServiceModel::getActive).toList()))
+                                .build()
+                );
+    }
+
 }

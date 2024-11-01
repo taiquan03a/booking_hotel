@@ -48,6 +48,10 @@ public class RoomController {
     ResponseEntity<?> getRoomByRankAdminPolicyType() {
         return roomService.getAllPolicyType();
     }
+    @GetMapping("admin/room_service/all")
+    ResponseEntity<?> getAllRoomByRankAdmin() {
+        return roomService.getAllServiceRoom();
+    }
     //        room detail
 
     @GetMapping("admin/room_number/get")

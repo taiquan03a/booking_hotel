@@ -126,6 +126,19 @@ public class IRoomDetailService implements RoomDetailService {
     }
 
     @Override
+    public ResponseEntity<?> deleteRoomDetail(int id) {
+        roomDetailRepository.deleteById(id);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Successfully delete room number" + id)
+                                .build()
+                );
+    }
+
+    @Override
     public ResponseEntity<?> viewRoom() {
         return ResponseEntity
                 .status(HttpStatus.OK)
