@@ -43,7 +43,7 @@ public class IUserService implements UserService {
                         ApiResponse.builder()
                                 .statusCode(HttpStatus.OK.value())
                                 .message("Successfully List role")
-                                .data(roleRepository.findAll())
+                                .data(roleRepository.findAll().stream().filter(role -> !role.getRole().equals(String.valueOf(EnumRole.ROLE_USER))))
                                 .build()
                 );
     }
@@ -76,6 +76,14 @@ public class IUserService implements UserService {
 
     @Override
     public ResponseEntity<?> createUser(CreateUserRequest createUserRequest) {
+        if(createUserRequest.getRoleId() == 3){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.builder()
+                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                    .message(String.valueOf(HttpStatus.BAD_REQUEST))
+                    .description("Role là admin hoặc nhân viên.")
+                    .timestamp(new Date(System.currentTimeMillis()))
+                    .build());
+        }
         var existedUser = userRepository.findByEmail(createUserRequest.getEmail());
         if (existedUser.isPresent())
             return ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse.builder()
