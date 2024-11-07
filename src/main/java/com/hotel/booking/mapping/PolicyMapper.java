@@ -13,6 +13,7 @@ public interface PolicyMapper {
     PolicyMapper INSTANCE = Mappers.getMapper(PolicyMapper.class);
     @Mapping(source = "type.name", target = "type")
     @Mapping(source = "id",target = "id")
+    @Mapping(source = "type.id",target = "typeId")
     PolicyResponse toResponse(Policy policy);
     List<PolicyResponse> toResponseList(List<Policy> policies);
 }

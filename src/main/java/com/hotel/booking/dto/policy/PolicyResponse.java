@@ -8,6 +8,7 @@ import lombok.Data;
 public class PolicyResponse {
     private int id;
     private String type;
+    private int typeId;
     private String content;
     private String description;
 }
