@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.time.LocalDate;
 
 public interface RoomService {
     ResponseEntity<?> createRoom(CreateRoomRequest createRoomRequest, Principal principal);
@@ -21,4 +22,5 @@ public interface RoomService {
     ResponseEntity<?> getAllPolicyType();
     ResponseEntity<?> placeRoom(PlaceRoomRequest placeRoomRequest, Principal principal);
     ResponseEntity<?> getAllServiceRoom();
+    ResponseEntity<?> searchRoomAdmin(LocalDate checkInDate, LocalDate checkOutDate,int adults,int children,int rankId);
 }

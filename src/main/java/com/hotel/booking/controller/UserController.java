@@ -21,4 +21,5 @@ public class UserController {
     public ResponseEntity<?> place(@RequestBody PlaceRoomRequest placeRoomRequest, Principal principal) {
         return roomService.placeRoom(placeRoomRequest, principal);
     }
+
 }

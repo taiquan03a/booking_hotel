@@ -101,7 +101,6 @@ public class IUserService implements UserService {
                     throw new AppException(ErrorCode.NOT_FOUND);
                 }
         );
-
         User user = User.builder()
                 .email(createUserRequest.getEmail())
                 .password(passwordEncoder.encode(createUserRequest.getPassword()))

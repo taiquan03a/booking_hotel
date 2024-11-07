@@ -11,4 +11,5 @@ import java.util.List;
 @Repository
 public interface RoomRankRepository extends JpaRepository<RoomRank, Integer> {
     Page<RoomRank> findByActiveTrue(Pageable pageable);
+    RoomRank findByActiveTrueAndId(int id);
 }

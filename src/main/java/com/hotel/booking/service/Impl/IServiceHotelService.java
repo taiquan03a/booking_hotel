@@ -135,7 +135,7 @@ public class IServiceHotelService implements ServiceHotelService {
                         ApiResponse.builder()
                                 .statusCode(HttpStatus.OK.value())
                                 .message("Successfully get list service hotel")
-                                .data(serviceHotelRepository.findAllByActive(true))
+                                .data(serviceHotelRepository.findAll())
                                 .build()
                 );
     }

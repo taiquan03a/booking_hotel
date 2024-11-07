@@ -6,7 +6,7 @@ import com.hotel.booking.dto.rankRoom.CreateRankRoomRequest;
 import com.hotel.booking.dto.rankRoom.EditRankRoomRequest;
 import com.hotel.booking.dto.rankRoom.RankRoomResponseAdmin;
 import com.hotel.booking.dto.rankRoom.RankRoomResponseUser;
-import com.hotel.booking.dto.room.RoomStatus;
+import com.hotel.booking.model.Enum.RoomStatus;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
 import com.hotel.booking.mapping.RoomRankMapper;
@@ -14,11 +14,7 @@ import com.hotel.booking.model.*;
 import com.hotel.booking.repository.*;
 import com.hotel.booking.service.CloudinaryService;
 import com.hotel.booking.service.RoomRankService;
-import com.hotel.booking.util.ImageUtil;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +26,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.OptionalInt;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

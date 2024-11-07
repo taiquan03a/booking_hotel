@@ -1,12 +1,16 @@
 package com.hotel.booking.model;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "booking_room")
 public class BookingRoom {
     @Id
@@ -21,6 +25,17 @@ public class BookingRoom {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_detail_id")
     private RoomDetail roomDetail;
+
+    @Column(name = "status_time")
+    private LocalDateTime statusTime;
+    @Column(name = "status")
+    private String status;
+
+    @Column(name = "adult_surcharge")
+    private Integer adultSurcharge;
+
+    @Column(name = "child_surcharge")
+    private Integer childSurcharge;
 
     @Column(name = "sum_adult")
     private Integer sumAdult;

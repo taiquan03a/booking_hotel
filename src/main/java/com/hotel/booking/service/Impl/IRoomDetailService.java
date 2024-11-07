@@ -1,13 +1,12 @@
 package com.hotel.booking.service.Impl;
 
 import com.hotel.booking.dto.ApiResponse;
-import com.hotel.booking.dto.room.RoomStatus;
+import com.hotel.booking.model.Enum.RoomStatus;
 import com.hotel.booking.dto.roomDetail.CreateRoomDetail;
 import com.hotel.booking.dto.roomDetail.EditRoomDetail;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
 import com.hotel.booking.mapping.RoomDetailMapper;
-import com.hotel.booking.model.Room;
 import com.hotel.booking.model.RoomDetail;
 import com.hotel.booking.model.User;
 import com.hotel.booking.repository.RoomDetailRepository;

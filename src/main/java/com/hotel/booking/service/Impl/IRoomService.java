@@ -1,17 +1,18 @@
 package com.hotel.booking.service.Impl;
 
 import com.hotel.booking.dto.ApiResponse;
-import com.hotel.booking.dto.placeRoom.PlaceRoomRequest;
+import com.hotel.booking.dto.placeRoom.*;
 import com.hotel.booking.dto.policy.PolicyDto;
+import com.hotel.booking.dto.rankRoom.RankRoomPlaceResponse;
 import com.hotel.booking.dto.room.*;
+import com.hotel.booking.dto.roomDetail.RoomDetailResponse;
 import com.hotel.booking.dto.roomService.ServiceRoomRequest;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
-import com.hotel.booking.mapping.PolicyMapper;
-import com.hotel.booking.mapping.RoomDetailMapper;
-import com.hotel.booking.mapping.RoomMapper;
-import com.hotel.booking.mapping.RoomServiceMapper;
+import com.hotel.booking.mapping.*;
 import com.hotel.booking.model.*;
+import com.hotel.booking.model.Enum.PolicyTypeEnum;
+import com.hotel.booking.model.Enum.RoomStatus;
 import com.hotel.booking.repository.*;
 import com.hotel.booking.service.CloudinaryService;
 import com.hotel.booking.service.RoomService;
@@ -22,9 +23,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -65,8 +70,8 @@ public class IRoomService implements RoomService {
                 .collect(Collectors.toList());
         List<RoomServiceModel> roomServices = roomServiceModelRepository.findAllById(serviceIds);
         List<ServiceRoom> serviceRoomList = new ArrayList<>();
-        for(ServiceRoomRequest request : createRoomRequest.getServiceList()) {
-            RoomServiceModel serviceModel = roomServiceModelRepository.findById(request.getServiceId()).orElseThrow(()->new AppException(ErrorCode.NOT_FOUND));
+        for (ServiceRoomRequest request : createRoomRequest.getServiceList()) {
+            RoomServiceModel serviceModel = roomServiceModelRepository.findById(request.getServiceId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
             roomServices.add(serviceModel);
             ServiceRoom serviceRoom = ServiceRoom.builder()
                     .service(serviceModel)
@@ -80,7 +85,7 @@ public class IRoomService implements RoomService {
                 .price(createRoomRequest.getPrice())
                 .adultNumber(createRoomRequest.getAdultNumber())
                 .adultMax(createRoomRequest.getAdultMax())
-                .service(roomServices)
+                //.service(roomServices)
                 .quantity(createRoomRequest.getRoomList().size())
                 .roomRank(roomRankRepository.findById(createRoomRequest.getRoomRank()).get())
                 .active(true)
@@ -89,9 +94,9 @@ public class IRoomService implements RoomService {
                 .build();
         roomRepository.save(room);
         List<RoomDetail> roomDetails = roomDetailRepository.findAllById(createRoomRequest.getRoomList());
-        for(RoomDetail detail : roomDetails) {
+        for (RoomDetail detail : roomDetails) {
             detail.setRoom(room);
-            detail.setRoomCode(detail.getLocation()+"_"+detail.getRoomNumber());
+            detail.setRoomCode(detail.getLocation() + "_" + detail.getRoomNumber());
             roomDetailRepository.save(detail);
         }
         serviceRoomList.forEach(serviceRoom -> {
@@ -118,7 +123,7 @@ public class IRoomService implements RoomService {
     @Override
     public ResponseEntity<?> deleteRoom(int roomId, Principal principal) {
         var user = (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
-        Room room = roomRepository.findById(roomId).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
+        Room room = roomRepository.findById(roomId).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
         room.setActive(!room.getActive());
         room.setUpdateAt(LocalDateTime.now());
         room.setUpdateBy(user.getEmail());
@@ -141,6 +146,7 @@ public class IRoomService implements RoomService {
         if (user == null) throw new AppException(ErrorCode.NOT_FOUND);
         List<Policy> policies = room.getPolicyList().stream()
                 .map(policyDto -> {
+                    System.out.println(policyDto.getTypeId());
                     return Policy.builder()
                             .room(roomCurrent)
                             .content(policyDto.getContent())
@@ -150,49 +156,37 @@ public class IRoomService implements RoomService {
                             .createBy(user.getEmail())
                             .build();
                 }).toList();
-//        List<RoomDetail> roomDetails = room.getRoomList().stream()
-//                .map(roomNumber -> {
-//                    return RoomDetail.builder()
-//                            .room(roomCurrent)
-//                            .roomCode(String.valueOf(roomNumber))
-//                            .roomNumber(roomNumber)
-//                            .status(String.valueOf(RoomStatus.AVAILABLE))
-//                            .createAt(LocalDateTime.now())
-//                            .createBy(user.getEmail())
-//                            .build();
-//                }).toList();
+        for (PolicyType type : policyTypeRepository.findAll()) {
+            List<Policy> matchingPolicies = policies.stream()
+                    .filter(policy -> policy.getType().getType().equals(type.getType()))
+                    .toList();
+            List<Policy> currentPolicy = roomCurrent.getPolicies().stream()
+                    .filter(policy -> policy.getType().getType().equals(type.getType()))
+                    .toList();
+            if (!matchingPolicies.isEmpty() && !currentPolicy.isEmpty()) {
+                currentPolicy.get(0).setContent(matchingPolicies.get(0).getContent());
+                currentPolicy.get(0).setDescription(matchingPolicies.get(0).getDescription());
+                policyRepository.save(currentPolicy.get(0));
+            }
+            if (!matchingPolicies.isEmpty() && currentPolicy.isEmpty()) {
+                policyRepository.save(matchingPolicies.get(0));
+            }
+            if (matchingPolicies.isEmpty() && !currentPolicy.isEmpty()) {
+                System.out.println("policy-> " + currentPolicy.get(0).getId());
+                policyRepository.deleteById(currentPolicy.get(0).getId());
+                policyRepository.flush();
+            }
+        }
         List<RoomDetail> roomDetailCurrent = roomCurrent.getRoomDetails();
-        for(RoomDetail detail : roomDetailCurrent) {
+        for (RoomDetail detail : roomDetailCurrent) {
             detail.setRoom(null);
             roomDetailRepository.save(detail);
         }
         List<RoomDetail> roomDetails = roomDetailRepository.findAllById(room.getRoomList());
-        for(RoomDetail detail : roomDetails) {
+        for (RoomDetail detail : roomDetails) {
             detail.setRoom(roomCurrent);
-            detail.setRoomCode(detail.getLocation()+"_"+detail.getRoomNumber());
+            detail.setRoomCode(detail.getLocation() + "_" + detail.getRoomNumber());
             roomDetailRepository.save(detail);
-        }
-        List<Policy> existingPolicies = roomCurrent.getPolicies();
-        existingPolicies.removeIf(existingPolicy ->
-                policies.stream().noneMatch(newPolicy -> newPolicy.getId() != null && newPolicy.getId().equals(existingPolicy.getId())));
-
-        existingPolicies.removeIf(existingPolicy ->
-                policies.stream().noneMatch(newPolicy ->
-                        newPolicy.getId() != null && newPolicy.getId().equals(existingPolicy.getId())));
-
-        for (Policy newPolicy : policies) {
-            if (newPolicy.getId() == null) {
-                existingPolicies.add(newPolicy);
-            } else {
-                existingPolicies.stream()
-                        .filter(existingPolicy -> existingPolicy.getId().equals(newPolicy.getId()))
-                        .findFirst()
-                        .ifPresent(existingPolicy -> {
-                            existingPolicy.setContent(newPolicy.getContent());
-                            existingPolicy.setDescription(newPolicy.getDescription());
-                            existingPolicy.setType(newPolicy.getType());
-                        });
-            }
         }
         List<RoomDetail> existingRoomDetails = roomCurrent.getRoomDetails();
         existingRoomDetails.removeIf(existingRoomDetail ->
@@ -218,24 +212,33 @@ public class IRoomService implements RoomService {
                 .map(ServiceRoomRequest::getServiceId)
                 .collect(Collectors.toList());
         List<RoomServiceModel> roomServices = roomServiceModelRepository.findAllById(serviceIds);
+        List<ServiceRoom> currentService = serviceRoomRepository.findAllByRoom(roomCurrent);
+        for (ServiceRoom serviceRoom1 : currentService) {
+            if (serviceRoom1.getId() == null) {
+                serviceRoomRepository.delete(serviceRoom1);
+            }
+        }
+        //serviceRoomRepository.deleteAllById(currentService.stream().map(ServiceRoom::getId).collect(Collectors.toList()));
         roomCurrent.setName(room.getName());
         roomCurrent.setDescription(room.getDescription());
         roomCurrent.setPrice(room.getPrice());
         roomCurrent.setAdultNumber(room.getAdultNumber());
         roomCurrent.setAdultMax(room.getAdultMax());
-        roomCurrent.setService(roomServices);
+        //roomCurrent.setService(roomServices);
         roomCurrent.setQuantity(room.getRoomList().size());
         roomCurrent.setRoomRank(roomRankRepository.findById(room.getRoomRank()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND)));
-        roomCurrent.setPolicies(existingPolicies);
+        //roomCurrent.setPolicies(existingPolicies);
         roomCurrent.setRoomDetails(existingRoomDetails);
         roomCurrent.setUpdateAt(LocalDateTime.now());
         roomCurrent.setUpdateBy(user.getEmail());
         roomRepository.save(roomCurrent);
-        for(ServiceRoomRequest serviceRoomRequest : room.getServiceList()) {
+        for (ServiceRoomRequest serviceRoomRequest : room.getServiceList()) {
             RoomServiceModel roomServiceModel = roomServiceModelRepository.findById(serviceRoomRequest.getServiceId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
-            ServiceRoom serviceRoom = serviceRoomRepository.findByRoomAndService(roomCurrent, roomServiceModel);
+            ServiceRoom serviceRoom = new ServiceRoom();
             serviceRoom.setPrice(serviceRoomRequest.getPrice());
-            //serviceRoomRepository.save(serviceRoom);
+            serviceRoom.setRoom(roomCurrent);
+            serviceRoom.setService(roomServiceModel);
+            serviceRoomRepository.save(serviceRoom);
         }
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -359,7 +362,36 @@ public class IRoomService implements RoomService {
     @Override
     public ResponseEntity<?> placeRoom(PlaceRoomRequest placeRoomRequest, Principal principal) {
         User user = (principal != null) ? (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal() : null;
-
+        List<Booking> bookingList = new ArrayList<>();
+        for (RoomPlace roomPlace : placeRoomRequest.getListPlace()) {
+            Room room = roomRepository.findById(roomPlace.getRoomId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+            Map<String, String> policyMap = new HashMap<>();
+            for (Policy policy : room.getPolicies()) {
+                policyMap.put(policy.getType().getType(), policy.getContent());
+            }
+            for (SelectRoom selectRoom : roomPlace.getListSelect()) {
+                if (selectRoom.getAdults() + selectRoom.getChildren() > room.getAdultMax())
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(
+                                    ApiResponse.builder()
+                                            .statusCode(HttpStatus.BAD_REQUEST.value())
+                                            .message("MAX_ADULT")
+                                            .description("Số người vượt quá giới hạn vui lòng chọn lại.")
+                                            .build()
+                            );
+                BookingRoom bookingRoom = BookingRoom.builder()
+                        .sumAdult(selectRoom.getAdults())
+                        .sumChildren(selectRoom.getChildren())
+                        .sumInfant(selectRoom.getInfants())
+                        .build();
+                if (selectRoom.getAdults() > room.getAdultNumber()) {
+                    int adultPlus = Integer.parseInt(policyMap.get(String.valueOf(PolicyTypeEnum.ADULT)));
+                    bookingRoom.setAdultSurcharge((selectRoom.getAdults() - room.getAdultNumber()) * adultPlus);
+                }
+                
+            }
+        }
         return null;
     }
 
@@ -372,6 +404,66 @@ public class IRoomService implements RoomService {
                                 .statusCode(HttpStatus.OK.value())
                                 .message("Successfully List service for room")
                                 .data(RoomServiceMapper.INSTANCE.toRoomServiceResponseList(roomServiceModelRepository.findAll().stream().filter(RoomServiceModel::getActive).toList()))
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> searchRoomAdmin(LocalDate checkInDate, LocalDate checkOutDate, int adults, int children, int rankId) {
+        LocalDateTime checkin = checkInDate.atTime(LocalTime.of(14, 0));
+        LocalDateTime checkout = checkOutDate.atTime(LocalTime.of(12, 0));
+        List<RoomRank> roomRankList = new ArrayList<>();
+        if (rankId != 0) {
+            RoomRank roomRank = roomRankRepository.findById(rankId).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+            if (roomRank.getActive()) roomRankList.add(roomRank);
+        } else {
+            roomRankList = roomRankRepository.findAll().stream().filter(RoomRank::getActive).collect(Collectors.toList());
+        }
+        int totalRoom = 0, availableRoom = 0, bookedRoom = 0;
+        List<RankRoomPlaceResponse> rankRoomPlaceResponses = new ArrayList<>();
+        for (RoomRank roomRank : roomRankList) {
+            List<Room> roomActiveList = roomRepository.findAllByRoomRank(roomRank).stream().filter(Room::getActive).toList();
+            List<RoomPlaceResponse> roomPlaceResponseList = new ArrayList<>();
+            for (Room room : roomActiveList) {
+                if (adults + children > room.getAdultMax()) return null;
+                List<RoomDetail> roomDetails = roomDetailRepository.findAvailableRooms(checkin, checkout, room);
+                RoomPlaceResponse roomPlace = RoomPlaceResponse.builder()
+                        .roomId(room.getId())
+                        .roomName(room.getName())
+                        .adultNumber(room.getAdultNumber())
+                        .adultMax(room.getAdultMax())
+                        .build();
+                availableRoom += roomDetails.size();
+                bookedRoom += roomDetailRepository.findCurrentlyBookedRooms(room).size();
+                totalRoom += room.getRoomDetails().size();
+                if (!roomDetails.isEmpty()) {
+                    List<RoomDetailResponse> roomDetailResponseList = RoomDetailMapper.INSTANCE.toRoomDetailResponseList(roomDetails);
+                    roomPlace.setRoomNumberList(roomDetailResponseList);
+                    roomPlaceResponseList.add(roomPlace);
+                }
+            }
+            RankRoomPlaceResponse rankRoomPlaceResponse = RankRoomPlaceResponse.builder()
+                    .id(roomRank.getId())
+                    .name(roomRank.getName())
+                    .area(roomRank.getArea())
+                    .amenity(RoomRankMapper.INSTANCE.toAmenityDtoList(roomRank.getAmenity()))
+                    .roomPlaces(roomPlaceResponseList)
+                    .build();
+            rankRoomPlaceResponses.add(rankRoomPlaceResponse);
+        }
+        SearchRoomResponse searchRoomResponse = SearchRoomResponse.builder()
+                .availableRoom(availableRoom)
+                .bookedRoom(bookedRoom)
+                .totalRoom(totalRoom)
+                .rankList(rankRoomPlaceResponses)
+                .build();
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Successfully search room")
+                                .data(searchRoomResponse)
                                 .build()
                 );
     }

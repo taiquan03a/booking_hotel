@@ -7,6 +7,8 @@ import lombok.Setter;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -29,10 +31,10 @@ public class Booking {
     private String checkout;
 
     @Column(name = "date_begin")
-    private Instant dateBegin;
+    private LocalDateTime dateBegin;
 
     @Column(name = "date_end")
-    private Instant dateEnd;
+    private LocalDateTime dateEnd;
 
     @Column(name = "sum_room")
     private Integer sumRoom;
