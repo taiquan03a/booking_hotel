@@ -40,7 +40,7 @@ public class RoomController {
     ResponseEntity<?> getRoomByRankAdmin(@RequestParam(required = false) String rankId) {
         return roomService.getAllByAdmin(rankId);
     }
-    @PostMapping("admin/active/{roomId}")
+    @GetMapping("admin/active/{roomId}")
     ResponseEntity<?> getRoomByRankAdminActive(@PathVariable int roomId, Principal principal) {
         return roomService.deleteRoom(roomId,principal);
     }

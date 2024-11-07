@@ -332,7 +332,7 @@ public class IRoomService implements RoomService {
         List<RoomAdminResponse> roomResponseList = roomMapper.toRoomResponseList(
                 roomRepository.findAll().
                         stream()
-                        .filter(room -> rankId == null || room.getRoomRank().getId() == Integer.parseInt(rankId) && room.getActive())
+                        .filter(room -> rankId == null || room.getRoomRank().getId() == Integer.parseInt(rankId))
                         .collect(Collectors.toList()));
         for(RoomAdminResponse roomAdminResponse : roomResponseList) {
             Room room = roomRepository.findById(roomAdminResponse.getId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
