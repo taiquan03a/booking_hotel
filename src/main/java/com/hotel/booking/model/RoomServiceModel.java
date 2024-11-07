@@ -1,5 +1,6 @@
 package com.hotel.booking.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -56,5 +57,9 @@ public class RoomServiceModel {
             joinColumns = @JoinColumn(name = "service_id"),
             inverseJoinColumns = @JoinColumn(name = "room_id"))
     private List<Room> rooms ;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "service",fetch = FetchType.LAZY)
+    private List<ServiceRoom> serviceRooms = new ArrayList<>();
 
 }

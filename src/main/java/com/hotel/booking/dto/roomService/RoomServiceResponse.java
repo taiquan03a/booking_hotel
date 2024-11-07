@@ -7,4 +7,5 @@ public class RoomServiceResponse {
     private int id;
     private String name;
     private String icon;
+    private int price;
 }

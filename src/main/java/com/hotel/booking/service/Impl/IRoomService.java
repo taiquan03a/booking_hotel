@@ -6,6 +6,7 @@ import com.hotel.booking.dto.policy.PolicyDto;
 import com.hotel.booking.dto.rankRoom.RankRoomPlaceResponse;
 import com.hotel.booking.dto.room.*;
 import com.hotel.booking.dto.roomDetail.RoomDetailResponse;
+import com.hotel.booking.dto.roomService.RoomServiceResponse;
 import com.hotel.booking.dto.roomService.ServiceRoomRequest;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
@@ -328,20 +329,26 @@ public class IRoomService implements RoomService {
 
     @Override
     public ResponseEntity<?> getAllByAdmin(String rankId) {
+        List<RoomAdminResponse> roomResponseList = roomMapper.toRoomResponseList(
+                roomRepository.findAll().
+                        stream()
+                        .filter(room -> rankId == null || room.getRoomRank().getId() == Integer.parseInt(rankId) && room.getActive())
+                        .collect(Collectors.toList()));
+        for(RoomAdminResponse roomAdminResponse : roomResponseList) {
+            Room room = roomRepository.findById(roomAdminResponse.getId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+            for(RoomServiceResponse serviceResponse:roomAdminResponse.getRoomServiceList()){
+                RoomServiceModel service = roomServiceModelRepository.findById(serviceResponse.getId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+                ServiceRoom serviceRoom = serviceRoomRepository.findByRoomAndService(room,service);
+                serviceResponse.setPrice(serviceRoom.getPrice());
+            }
+        }
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
                         ApiResponse.builder()
                                 .statusCode(HttpStatus.OK.value())
                                 .message("Successfully List room by rank room for admin")
-                                .data(
-                                        roomMapper.toRoomResponseList(
-                                                roomRepository.findAll().
-                                                        stream()
-                                                        .filter(room -> rankId == null || room.getRoomRank().getId() == Integer.parseInt(rankId) && room.getActive())
-                                                        .collect(Collectors.toList())
-                                        )
-                                )
+                                .data(roomResponseList)
                                 .build()
                 );
     }

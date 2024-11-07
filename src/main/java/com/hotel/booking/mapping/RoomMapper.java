@@ -15,6 +15,7 @@ import java.util.List;
 public interface RoomMapper {
     RoomMapper INSTANCE = Mappers.getMapper(RoomMapper.class);
 
+    @Mapping(source = "roomRank.id",target = "roomRankId")
     @Mapping(source = "roomRank.name", target = "roomRank")
     @Mapping(source = "policies", target = "policyList")
     @Mapping(source = "roomDetails", target = "roomDetailList")

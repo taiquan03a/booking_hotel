@@ -23,6 +23,7 @@ public class RoomAdminResponse {
     private int quantity;
     private boolean active;
     private String roomRank;
+    private int roomRankId;
     private Double rate;
     private List<PolicyResponse> policyList;
     private List<RoomDetailResponse> roomDetailList;

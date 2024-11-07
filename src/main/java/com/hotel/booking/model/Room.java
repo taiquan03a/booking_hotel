@@ -66,6 +66,7 @@ public class Room {
             inverseJoinColumns = @JoinColumn(name = "service_id"))
     private List<RoomServiceModel> service;
 
+
     @Column(name = "quantity")
     private Integer quantity;
 
