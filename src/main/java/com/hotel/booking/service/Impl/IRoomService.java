@@ -453,7 +453,9 @@ public class IRoomService implements RoomService {
                     .id(roomRank.getId())
                     .name(roomRank.getName())
                     .area(roomRank.getArea())
-                    .amenity(RoomRankMapper.INSTANCE.toAmenityDtoList(roomRank.getAmenity()))
+                    .image(roomRank.getImages().get(0).getPath())
+                    .bed(RoomRankMapper.INSTANCE.toBedDtoList(roomRank.getRoomBeds()))
+                    .amenities(RoomRankMapper.INSTANCE.toAmenityDtoList(roomRank.getAmenity()))
                     .roomPlaces(roomPlaceResponseList)
                     .build();
             rankRoomPlaceResponses.add(rankRoomPlaceResponse);
