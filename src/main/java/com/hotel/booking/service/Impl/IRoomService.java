@@ -449,11 +449,15 @@ public class IRoomService implements RoomService {
                     roomPlaceResponseList.add(roomPlace);
                 }
             }
+            String imagePath = (roomRank.getImages() != null && !roomRank.getImages().isEmpty())
+                    ? roomRank.getImages().get(0).getPath()
+                    : null;
+
             RankRoomPlaceResponse rankRoomPlaceResponse = RankRoomPlaceResponse.builder()
                     .id(roomRank.getId())
                     .name(roomRank.getName())
                     .area(roomRank.getArea())
-                    .image(roomRank.getImages().get(0).getPath())
+                    .image(imagePath)
                     .bed(RoomRankMapper.INSTANCE.toBedDtoList(roomRank.getRoomBeds()))
                     .amenities(RoomRankMapper.INSTANCE.toAmenityDtoList(roomRank.getAmenity()))
                     .roomPlaces(roomPlaceResponseList)
