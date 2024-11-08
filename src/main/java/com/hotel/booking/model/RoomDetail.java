@@ -1,5 +1,6 @@
 package com.hotel.booking.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -47,6 +48,7 @@ public class RoomDetail {
     private String status;
 
     @Column(name = "create_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private LocalDateTime createAt;
 
     @Size(max = 255)
@@ -55,6 +57,7 @@ public class RoomDetail {
     private String createBy;
 
     @Column(name = "update_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private LocalDateTime updateAt;
 
     @Size(max = 255)

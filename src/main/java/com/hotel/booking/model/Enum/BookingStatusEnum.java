@@ -5,5 +5,6 @@ public enum BookingStatusEnum {
     CHECKED_IN,
     CHECKED_OUT,
     CANCELED,
-    NO_SHOW
+    NO_SHOW,
+    CART
 }

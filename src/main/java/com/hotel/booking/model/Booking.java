@@ -1,40 +1,31 @@
 package com.hotel.booking.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "booking")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Booking {
     @Id
     @Column(name = "id", nullable = false)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Size(max = 255)
-    @Column(name = "checkin")
-    private String checkin;
-
-    @Size(max = 255)
-    @Column(name = "checkout")
-    private String checkout;
-
-    @Column(name = "date_begin")
-    private LocalDateTime dateBegin;
-
-    @Column(name = "date_end")
-    private LocalDateTime dateEnd;
 
     @Column(name = "sum_room")
     private Integer sumRoom;
@@ -52,7 +43,8 @@ public class Booking {
     private String status;
 
     @Column(name = "create_at")
-    private Instant createAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    private LocalDateTime createAt;
 
     @Size(max = 255)
     @Nationalized
@@ -60,7 +52,8 @@ public class Booking {
     private String createBy;
 
     @Column(name = "update_at")
-    private Instant updateAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    private LocalDateTime updateAt;
 
     @Size(max = 255)
     @Nationalized
@@ -68,6 +61,10 @@ public class Booking {
     private String updateBy;
 
     @OneToMany(mappedBy = "booking")
-    private Set<BookingRoom> bookingRooms = new LinkedHashSet<>();
+    private List<BookingRoom> bookingRooms = new ArrayList<>();
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
 }

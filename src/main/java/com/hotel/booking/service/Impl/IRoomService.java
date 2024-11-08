@@ -392,9 +392,14 @@ public class IRoomService implements RoomService {
                         .sumChildren(selectRoom.getChildren())
                         .sumInfant(selectRoom.getInfants())
                         .build();
+                int adultPlus = Integer.parseInt(policyMap.get(String.valueOf(PolicyTypeEnum.ADULT)));
+                int childPlus = Integer.parseInt(policyMap.get(String.valueOf(PolicyTypeEnum.CHILD)));
                 if (selectRoom.getAdults() > room.getAdultNumber()) {
-                    int adultPlus = Integer.parseInt(policyMap.get(String.valueOf(PolicyTypeEnum.ADULT)));
                     bookingRoom.setAdultSurcharge((selectRoom.getAdults() - room.getAdultNumber()) * adultPlus);
+                    bookingRoom.setChildSurcharge(selectRoom.getChildren() * childPlus);
+                }else{
+                    int x = room.getAdultMax() - selectRoom.getAdults();
+                    bookingRoom.setChildSurcharge((selectRoom.getChildren() - x)* childPlus);
                 }
                 
             }

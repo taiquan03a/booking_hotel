@@ -1,8 +1,10 @@
 package com.hotel.booking.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -27,6 +29,7 @@ public class BookingRoom {
     private RoomDetail roomDetail;
 
     @Column(name = "status_time")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private LocalDateTime statusTime;
     @Column(name = "status")
     private String status;
@@ -50,6 +53,14 @@ public class BookingRoom {
     private Integer price;
 
     @Column(name = "service_id")
-    private Integer serviceId;
+    private String serviceId;
+
+    @Column(name = "checkin")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy", timezone = "Asia/Ho_Chi_Minh")
+    private LocalDateTime checkin;
+
+    @Column(name = "checkout")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy", timezone = "Asia/Ho_Chi_Minh")
+    private LocalDateTime checkout;
 
 }
