@@ -22,4 +22,23 @@ public class BookingController {
     public ResponseEntity<?> getCart(Principal principal) {
         return bookingService.booking(principal);
     }
+    @GetMapping("remove_cart/{bookingRoomId}")
+    public ResponseEntity<?> removeCart(@PathVariable int bookingRoomId,Principal principal) {
+        return bookingService.removeFromCart(principal,bookingRoomId);
+    }
+    @GetMapping("checkout")
+    public ResponseEntity<?> checkout(Principal principal) {
+        return bookingService.checkout(principal);
+    }
+    @PostMapping("edit_cart")
+    public ResponseEntity<?> editCart(
+            @RequestParam(defaultValue = "-1") int adult,
+            @RequestParam(defaultValue = "-1") int child,
+            @RequestParam(defaultValue = "-1") int infant,
+            @RequestParam(defaultValue = "-1") String serviceId,
+            @RequestParam int bookingRoomId,
+            Principal principal
+    ) {
+        return bookingService.editCart(principal,adult,child,infant,serviceId,bookingRoomId);
+    }
 }

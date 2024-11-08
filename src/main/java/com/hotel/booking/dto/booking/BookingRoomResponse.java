@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class BookingRoomResponse {
+    private int bookingRoomId;
     private int roomNumber;
     private String roomCode;
     private String roomType;

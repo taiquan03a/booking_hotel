@@ -49,10 +49,8 @@ spring:
       file-size-threshold: 10MB
       max-file-size: 50MB
       max-request-size: 50MB
-vn-pay:
-  secretKey: VCIQKPMICXDFNZJTBQMHDXZXWDFHIFVL
-  vnp_ApiUrl: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
-  vnp_PayUrl: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
-  vnp_ReturnUrl: /api/v1/vnpay/payment
-  vnp_TmnCode: CNM5BH1A
-  vnp_Version: 2.1.0
+
+
+
+
+
