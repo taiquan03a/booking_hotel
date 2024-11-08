@@ -133,7 +133,7 @@ public class IBookingService implements BookingService {
                 .childSurcharge(childPlus)
                 .roomDetail(roomDetail)
                 .booking(bookingCart)
-                .price(room.getPrice())
+                .price(room.getPrice() + adultPlus + childPlus)
                 .build();
         bookingRoomRepository.save(bookingRoom);
         return ResponseEntity
