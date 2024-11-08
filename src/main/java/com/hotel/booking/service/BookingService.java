@@ -7,4 +7,5 @@ import java.security.Principal;
 
 public interface BookingService {
     ResponseEntity<?> addToCart(CreateCart createCart, Principal principal);
+    ResponseEntity<?> booking(Principal principal);
 }

@@ -1,6 +1,8 @@
 package com.hotel.booking.service.Impl;
 
 import com.hotel.booking.dto.ApiResponse;
+import com.hotel.booking.dto.booking.BookingRoomResponse;
+import com.hotel.booking.dto.booking.CartResponse;
 import com.hotel.booking.dto.booking.CreateCart;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
@@ -136,6 +138,9 @@ public class IBookingService implements BookingService {
                 .price(room.getPrice() + adultPlus + childPlus)
                 .build();
         bookingRoomRepository.save(bookingRoom);
+        bookingCart.setSumRoom(bookingCart.getSumRoom() + 1);
+        bookingCart.setSumPrice(bookingCart.getSumPrice() + bookingRoom.getPrice());
+        bookingRepository.save(bookingCart);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
@@ -143,6 +148,44 @@ public class IBookingService implements BookingService {
                                 .statusCode(HttpStatus.OK.value())
                                 .message("Chọn phòng " + roomDetail.getRoomNumber() + " thành công.")
                                 .data(bookingRoom)
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> booking(Principal principal) {
+        User user = (principal != null) ? (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal() : null;
+        Booking booking = bookingRepository.findByUser(user).stream().filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).findFirst().get();
+        List<BookingRoomResponse> roomCart = new ArrayList<>();
+        int roomPrice = 0, totalPrice = 0;
+        for(BookingRoom bookingRoom: booking.getBookingRooms()){
+            RoomDetail detail = bookingRoom.getRoomDetail();
+            roomPrice += detail.getRoom().getPrice();
+            totalPrice += bookingRoom.getPrice();
+            BookingRoomResponse bookingRoomResponse = BookingRoomResponse.builder()
+                    .roomNumber(detail.getRoomNumber())
+                    .roomCode(detail.getRoomCode())
+                    .roomName(detail.getRoom().getName())
+                    .roomType(detail.getRoom().getRoomRank().getName())
+                    .checkin(String.valueOf(bookingRoom.getCheckin()))
+                    .checkout(String.valueOf(bookingRoom.getCheckout()))
+                    .price(bookingRoom.getPrice())
+                    .build();
+            roomCart.add(bookingRoomResponse);
+        }
+        CartResponse response = CartResponse.builder()
+                .roomPrice(roomPrice)
+                .totalPrice(totalPrice)
+                .policyPrice(totalPrice - roomPrice)
+                .roomCart(roomCart)
+                .build();
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Cart user ->" + user.getEmail())
+                                .data(response)
                                 .build()
                 );
     }
