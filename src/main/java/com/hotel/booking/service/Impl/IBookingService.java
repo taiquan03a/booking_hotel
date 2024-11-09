@@ -167,11 +167,12 @@ public class IBookingService implements BookingService {
         Booking booking = bookingRepository.findByUser(user)
                 .stream().filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).findFirst().get();
         List<BookingRoomResponse> roomCart = new ArrayList<>();
-        int roomPrice = 0, totalPrice = 0;
+        int roomPrice = 0, totalPrice = 0,policyPrice = 0;
         for(BookingRoom bookingRoom: booking.getBookingRooms()){
             RoomDetail detail = bookingRoom.getRoomDetail();
             roomPrice += detail.getRoom().getPrice();
             totalPrice += bookingRoom.getPrice();
+            policyPrice += bookingRoom.getAdultSurcharge() + bookingRoom.getChildSurcharge();
             BookingRoomResponse bookingRoomResponse = BookingRoomResponse.builder()
                     .bookingRoomId(bookingRoom.getId())
                     .roomNumber(detail.getRoomNumber())
@@ -187,7 +188,7 @@ public class IBookingService implements BookingService {
         CartResponse response = CartResponse.builder()
                 .roomPrice(roomPrice)
                 .totalPrice(totalPrice)
-                .policyPrice(totalPrice - roomPrice)
+                .policyPrice(policyPrice)
                 .roomCart(roomCart)
                 .build();
         return ResponseEntity
