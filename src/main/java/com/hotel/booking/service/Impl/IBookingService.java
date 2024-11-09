@@ -34,14 +34,16 @@ public class IBookingService implements BookingService {
     private final BookingRoomRepository bookingRoomRepository;
     private final ServiceRoomRepository serviceRoomRepository;
     private final RoomServiceModelRepository roomServiceModelRepository;
+    private final UserRepository userRepository;
 
-    public IBookingService(RoomDetailRepository roomDetailRepository, RoomRepository roomRepository, BookingRepository bookingRepository, BookingRoomRepository bookingRoomRepository, ServiceRoomRepository serviceRoomRepository, RoomServiceModelRepository roomServiceModelRepository) {
+    public IBookingService(RoomDetailRepository roomDetailRepository, RoomRepository roomRepository, BookingRepository bookingRepository, BookingRoomRepository bookingRoomRepository, ServiceRoomRepository serviceRoomRepository, RoomServiceModelRepository roomServiceModelRepository, UserRepository userRepository) {
         this.roomDetailRepository = roomDetailRepository;
         this.roomRepository = roomRepository;
         this.bookingRepository = bookingRepository;
         this.bookingRoomRepository = bookingRoomRepository;
         this.serviceRoomRepository = serviceRoomRepository;
         this.roomServiceModelRepository = roomServiceModelRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -109,6 +111,8 @@ public class IBookingService implements BookingService {
         if(bookingCart == null){
             bookingCart = new Booking();
             bookingCart.setUser(user);
+            bookingCart.setSumRoom(0);
+            bookingCart.setSumPrice(0);
             bookingCart.setStatus(String.valueOf(BookingStatusEnum.CART));
             bookingRepository.save(bookingCart);
         }else{
@@ -360,7 +364,14 @@ public class IBookingService implements BookingService {
     }
 
     @Override
-    public ResponseEntity<?> payment(Principal principal, int customerId) {
+    public Map<String, Object> payment(Principal principal, Long customerId) {
+        User customer = userRepository.findById(customerId).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
+        User user = (principal != null) ? (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal() : null;
+        Booking booking = bookingRepository.findByUser(user)
+                .stream().filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).findFirst().get();
+//        for(BookingRoom bookingRoom: booking.getBookingRooms()){
+//            bookingRoom.setStatus();
+//        }
         return null;
     }
 }

@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -40,5 +41,9 @@ public class BookingController {
             Principal principal
     ) {
         return bookingService.editCart(principal,adult,child,infant,serviceId,bookingRoomId);
+    }
+    @PostMapping("place")
+    public Map<String, Object> place(Principal principal){
+        return null;
     }
 }
