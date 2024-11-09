@@ -12,5 +12,6 @@ public interface BookingService {
     ResponseEntity<?> removeFromCart(Principal principal,int bookingRoomId);
     ResponseEntity<?> checkout(Principal principal);
     ResponseEntity<?> editCart(Principal principal, int adult, int child,int infant,String serviceId,int bookingRoomId);
-    Map<String, Object> payment(Principal principal, Long customerId);
+    Map<String, Object> payment(Principal principal, Long customerId) throws Exception;
+    ResponseEntity<?> checkBill(String transId,int paymentId) throws Exception;
 }

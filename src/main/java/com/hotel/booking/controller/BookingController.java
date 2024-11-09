@@ -42,8 +42,8 @@ public class BookingController {
     ) {
         return bookingService.editCart(principal,adult,child,infant,serviceId,bookingRoomId);
     }
-    @PostMapping("place")
-    public Map<String, Object> place(Principal principal){
-        return null;
+    @PostMapping("payment/{customerId}")
+    public Map<String, Object> place(@PathVariable Long customerId,Principal principal) throws Exception {
+        return bookingService.payment(principal,customerId);
     }
 }

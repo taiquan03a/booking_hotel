@@ -78,6 +78,7 @@ public class IZaloPayService implements ZaloPayService {
         }
         JSONObject result = new JSONObject(resultJsonStr.toString());
         Map<String, Object> kq = new HashMap<String, Object>();
+        kq.put("apptransid", zalopay_Params.get("apptransid"));
         kq.put("returnmessage", result.get("returnmessage"));
         kq.put("orderurl", result.get("orderurl"));
         kq.put("returncode", result.get("returncode"));

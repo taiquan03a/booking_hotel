@@ -13,6 +13,7 @@ import com.hotel.booking.model.Enum.BookingStatusEnum;
 import com.hotel.booking.model.Enum.PolicyTypeEnum;
 import com.hotel.booking.repository.*;
 import com.hotel.booking.service.BookingService;
+import com.hotel.booking.service.ZaloPayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class IBookingService implements BookingService {
 
     private final RoomDetailRepository roomDetailRepository;
@@ -35,16 +37,8 @@ public class IBookingService implements BookingService {
     private final ServiceRoomRepository serviceRoomRepository;
     private final RoomServiceModelRepository roomServiceModelRepository;
     private final UserRepository userRepository;
-
-    public IBookingService(RoomDetailRepository roomDetailRepository, RoomRepository roomRepository, BookingRepository bookingRepository, BookingRoomRepository bookingRoomRepository, ServiceRoomRepository serviceRoomRepository, RoomServiceModelRepository roomServiceModelRepository, UserRepository userRepository) {
-        this.roomDetailRepository = roomDetailRepository;
-        this.roomRepository = roomRepository;
-        this.bookingRepository = bookingRepository;
-        this.bookingRoomRepository = bookingRoomRepository;
-        this.serviceRoomRepository = serviceRoomRepository;
-        this.roomServiceModelRepository = roomServiceModelRepository;
-        this.userRepository = userRepository;
-    }
+    private final ZaloPayService zaloPayService;
+    private final BillRepository billRepository;
 
     @Override
     public ResponseEntity<?> addToCart(CreateCart createCart, Principal principal) {
@@ -366,14 +360,69 @@ public class IBookingService implements BookingService {
     }
 
     @Override
-    public Map<String, Object> payment(Principal principal, Long customerId) {
+    public Map<String, Object> payment(Principal principal, Long customerId) throws Exception {
         User customer = userRepository.findById(customerId).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
         User user = (principal != null) ? (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal() : null;
         Booking booking = bookingRepository.findByUser(user)
                 .stream().filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).findFirst().get();
-//        for(BookingRoom bookingRoom: booking.getBookingRooms()){
-//            bookingRoom.setStatus();
-//        }
-        return null;
+        booking.setUser(customer);
+        booking.setStatus(String.valueOf(BookingStatusEnum.BOOKED));
+        booking.getBookingRooms().forEach(
+                bookingRoom -> bookingRoom.setStatus(String.valueOf(BookingStatusEnum.BOOKED))
+        );
+        bookingRepository.save(booking);
+        Map<String,Object> kq = zaloPayService.createPayment("booking",Long.valueOf(booking.getSumPrice()), Long.valueOf(booking.getId()));
+        Bill bill = Bill.builder()
+                .booking(booking)
+                .paymentAmount(String.valueOf(booking.getSumPrice()))
+                .status("PROCESSING")
+                .transId(kq.get("apptransid").toString())
+                .createAt(LocalDateTime.now())
+                .build();
+        billRepository.save(bill);
+        kq.put("paymentId",bill.getId());
+        return kq;
+    }
+
+    @Override
+    public ResponseEntity<?> checkBill(String transId,int paymentId) throws Exception {
+        Bill bill = billRepository.findById(paymentId).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
+        Booking booking = billRepository.findBookingByBillId(paymentId);
+        Map<String,Object> kq = zaloPayService.getStatusByApptransid(transId);
+        if(!kq.get("returncode").equals("1")){
+            bill.setStatus("FAIL");
+            billRepository.save(bill);
+            booking.setStatus(String.valueOf(BookingStatusEnum.CANCELED));
+            booking.getBookingRooms().forEach(
+                    bookingRoom -> bookingRoom.setStatus(String.valueOf(BookingStatusEnum.CANCELED))
+            );
+            bookingRepository.save(booking);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(
+                            ApiResponse.builder()
+                                    .statusCode(400)
+                                    .message("PAYMENT_FAIL")
+                                    .description("Thanh toán thất bại.")
+                                    .build()
+                    );
+        }
+        bill.setStatus("SUCCESS");
+        billRepository.save(bill);
+        booking.setStatus(String.valueOf(BookingStatusEnum.BOOKED));
+        booking.getBookingRooms().forEach(
+                bookingRoom -> bookingRoom.setStatus(String.valueOf(BookingStatusEnum.BOOKED))
+        );
+        bookingRepository.save(booking);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(200)
+                                .message("PAYMENT_SUCCESS")
+                                .description("Thanh toán thành công.")
+                                .build()
+                );
+
     }
 }
