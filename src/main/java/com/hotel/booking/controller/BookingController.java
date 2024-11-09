@@ -1,5 +1,6 @@
 package com.hotel.booking.controller;
 
+import com.hotel.booking.dto.booking.CheckBillRequest;
 import com.hotel.booking.dto.booking.CreateCart;
 import com.hotel.booking.service.BookingService;
 import lombok.RequiredArgsConstructor;
@@ -45,5 +46,9 @@ public class BookingController {
     @PostMapping("payment/{customerId}")
     public Map<String, Object> place(@PathVariable Long customerId,Principal principal) throws Exception {
         return bookingService.payment(principal,customerId);
+    }
+    @GetMapping("check_bill")
+    public ResponseEntity<?> checkBill(@RequestBody CheckBillRequest check) throws Exception {
+            return bookingService.checkBill(check.getTransId(),check.getPaymentId());
     }
 }
