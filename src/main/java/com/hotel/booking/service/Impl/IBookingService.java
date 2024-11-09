@@ -344,7 +344,8 @@ public class IBookingService implements BookingService {
             childPlus = bookingRoom.getSumChildren() * childPolicy;
         }else{
             int x = room.getAdultNumber() - bookingRoom.getSumAdult();
-            childPlus =(bookingRoom.getSumChildren() - x) * childPolicy;
+            if(bookingRoom.getSumChildren() >= x)
+                childPlus =(bookingRoom.getSumChildren() - x) * childPolicy;
         }
         int bookingRoomPriceOld = bookingRoom.getPrice();
         bookingRoom.setAdultSurcharge(adultPlus);
