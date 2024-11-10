@@ -404,6 +404,7 @@ public class IBookingService implements BookingService {
                                     .statusCode(400)
                                     .message("PAYMENT_FAIL")
                                     .description("Thanh toán thất bại.")
+                                    .data(getBillDetail(booking))
                                     .build()
                     );
         }
@@ -421,8 +422,73 @@ public class IBookingService implements BookingService {
                                 .statusCode(200)
                                 .message("PAYMENT_SUCCESS")
                                 .description("Thanh toán thành công.")
+                                .data(getBillDetail(booking))
                                 .build()
                 );
 
+    }
+    private CartDetailResponse getBillDetail(Booking booking) {
+        List<BookingRoomDetail> bookingDetails = new ArrayList<>();
+        int totalPolicyPrice= 0,totalBookingPrice = 0, totalRoomPrice = 0;
+        for(BookingRoom bookingRoom: booking.getBookingRooms()){
+            RoomDetail detail = bookingRoom.getRoomDetail();
+            List<ServiceRoomSelect> serviceSelect = new ArrayList<>();
+            List<Integer> serviceSelectedId = bookingRoom.getServiceId().equals("0")
+                    ? List.of()
+                    : Arrays.stream(bookingRoom.getServiceId().split(","))
+                    .map(Integer::parseInt)
+                    .toList();
+
+            for(RoomServiceModel serviceModel : detail.getRoom().getService()){
+                ServiceRoom serviceRoom = serviceRoomRepository.findByRoomAndService(detail.getRoom(),serviceModel);
+                boolean exists = false;
+                for(int it : serviceSelectedId){
+                    if(it == serviceModel.getId()) {
+                        exists = true;
+                        break;
+                    }
+                }
+                if(serviceRoom != null){
+                    ServiceRoomSelect select = ServiceRoomSelect.builder()
+                            .id(serviceModel.getId())
+                            .name(serviceModel.getName())
+                            .selected(exists)
+                            .price(serviceRoom.getPrice())
+                            .build();
+                    serviceSelect.add(select);
+                }
+            }
+            BookingRoomDetail bookingCarted = BookingRoomDetail.builder()
+                    .bookingRoomId(bookingRoom.getId())
+                    .roomNumber(detail.getRoomNumber())
+                    .roomCode(detail.getRoomCode())
+                    .roomName(detail.getRoom().getName())
+                    .roomType(detail.getRoom().getRoomRank().getName())
+                    .image(detail.getRoom().getRoomRank().getImages().get(0).getPath())
+                    .checkIn(String.valueOf(bookingRoom.getCheckin()))
+                    .checkOut(String.valueOf(bookingRoom.getCheckout()))
+                    .adults(bookingRoom.getSumAdult())
+                    .children(bookingRoom.getSumChildren())
+                    .infant(bookingRoom.getSumInfant())
+                    .adultSurcharge(bookingRoom.getAdultSurcharge())
+                    .childSurcharge(bookingRoom.getChildSurcharge())
+                    .roomPrice(detail.getRoom().getPrice())
+                    .totalPrice(bookingRoom.getPrice())
+                    .policyList(PolicyMapper.INSTANCE.toResponseList(detail.getRoom().getPolicies()))
+                    .serviceList(serviceSelect)
+                    .build();
+
+            bookingDetails.add(bookingCarted);
+            totalPolicyPrice += bookingCarted.getAdultSurcharge() + bookingCarted.getChildSurcharge();
+            totalRoomPrice += bookingCarted.getRoomPrice();
+            totalBookingPrice += bookingCarted.getTotalPrice();
+        }
+        return CartDetailResponse.builder()
+                .totalRoomBooking(booking.getBookingRooms().size())
+                .totalRoomPrice(totalRoomPrice)
+                .totalBookingPrice(totalBookingPrice)
+                .totalPolicyPrice(totalPolicyPrice)
+                .bookingRoomDetails(bookingDetails)
+                .build();
     }
 }
