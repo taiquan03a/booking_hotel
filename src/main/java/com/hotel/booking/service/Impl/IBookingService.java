@@ -159,7 +159,10 @@ public class IBookingService implements BookingService {
     public ResponseEntity<?> booking(Principal principal) {
         User user = (principal != null) ? (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal() : null;
         Booking booking = bookingRepository.findByUser(user)
-                .stream().filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).findFirst().get();
+                .stream()
+                .filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART)))
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
         List<BookingRoomResponse> roomCart = new ArrayList<>();
         int roomPrice = 0, totalPrice = 0,policyPrice = 0;
         for(BookingRoom bookingRoom: booking.getBookingRooms()){
