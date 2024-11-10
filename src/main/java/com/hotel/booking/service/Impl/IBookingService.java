@@ -310,11 +310,21 @@ public class IBookingService implements BookingService {
                                     .description("Phòng đang không thuộc giỏ.")
                                     .build()
                     );
+        Room room = roomRepository.findRoomsByRoomDetail(bookingRoom.getRoomDetail());
         if(adult != -1) bookingRoom.setSumAdult(adult);
         if(child != -1) bookingRoom.setSumChildren(child);
         if(infant != -1) bookingRoom.setSumInfant(infant);
-        if(!serviceId.equals("-1")) bookingRoom.setServiceId(serviceId);
-        Room room = roomRepository.findRoomsByRoomDetail(bookingRoom.getRoomDetail());
+        int servicePrice = 0;
+        if(!serviceId.equals("-1")) {
+            bookingRoom.setServiceId(serviceId);
+            String[] idList = serviceId.split(",");
+            for(String id : idList){
+                RoomServiceModel serviceModel = roomServiceModelRepository.findById(Integer.parseInt(id)).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
+                ServiceRoom serviceRoom = serviceRoomRepository.findByRoomAndService(room,serviceModel);
+                servicePrice += serviceRoom.getPrice();
+            }
+        }
+
         Map<String, String> policyMap = new HashMap<>();
         for (Policy policy : room.getPolicies()) {
             policyMap.put(policy.getType().getType(), policy.getContent());
@@ -344,7 +354,7 @@ public class IBookingService implements BookingService {
         int bookingRoomPriceOld = bookingRoom.getPrice();
         bookingRoom.setAdultSurcharge(adultPlus);
         bookingRoom.setChildSurcharge(childPlus);
-        bookingRoom.setPrice(room.getPrice() + adultPlus + childPlus);
+        bookingRoom.setPrice(room.getPrice() + adultPlus + childPlus + servicePrice);
         booking.setSumPrice(bookingRoom.getPrice() - bookingRoomPriceOld + bookingRoom.getPrice());
         bookingRoomRepository.save(bookingRoom);
         bookingRepository.save(booking);
@@ -427,6 +437,94 @@ public class IBookingService implements BookingService {
                 );
 
     }
+
+    @Override
+    public ResponseEntity<?> historyBooking() {
+        List<Booking> bookingList = bookingRepository.findAll().stream()
+                .filter(booking -> !booking.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).toList();
+        List<HistoryBooking> historyBookingList = new ArrayList<>();
+        for(Booking booking: bookingList){
+            List<BookingRoomDetail> bookingDetails = new ArrayList<>();
+            int totalPolicyPrice= 0,totalBookingPrice = 0, totalRoomPrice = 0;
+            for(BookingRoom bookingRoom: booking.getBookingRooms()){
+                RoomDetail detail = bookingRoom.getRoomDetail();
+                List<ServiceRoomSelect> serviceSelect = new ArrayList<>();
+                List<Integer> serviceSelectedId = bookingRoom.getServiceId().equals("0")
+                        ? List.of()
+                        : Arrays.stream(bookingRoom.getServiceId().split(","))
+                        .map(Integer::parseInt)
+                        .toList();
+
+                for(RoomServiceModel serviceModel : detail.getRoom().getService()){
+                    ServiceRoom serviceRoom = serviceRoomRepository.findByRoomAndService(detail.getRoom(),serviceModel);
+                    boolean exists = false;
+                    for(int it : serviceSelectedId){
+                        if(it == serviceModel.getId()) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if(serviceRoom != null){
+                        ServiceRoomSelect select = ServiceRoomSelect.builder()
+                                .id(serviceModel.getId())
+                                .name(serviceModel.getName())
+                                .selected(exists)
+                                .price(serviceRoom.getPrice())
+                                .build();
+                        serviceSelect.add(select);
+                    }
+                }
+                BookingRoomDetail bookingCarted = BookingRoomDetail.builder()
+                        .bookingRoomId(bookingRoom.getId())
+                        .roomNumber(detail.getRoomNumber())
+                        .roomCode(detail.getRoomCode())
+                        .roomName(detail.getRoom().getName())
+                        .roomType(detail.getRoom().getRoomRank().getName())
+                        .image(detail.getRoom().getRoomRank().getImages().get(0).getPath())
+                        .checkIn(String.valueOf(bookingRoom.getCheckin()))
+                        .checkOut(String.valueOf(bookingRoom.getCheckout()))
+                        .adults(bookingRoom.getSumAdult())
+                        .children(bookingRoom.getSumChildren())
+                        .infant(bookingRoom.getSumInfant())
+                        .adultSurcharge(bookingRoom.getAdultSurcharge())
+                        .childSurcharge(bookingRoom.getChildSurcharge())
+                        .roomPrice(detail.getRoom().getPrice())
+                        .totalPrice(bookingRoom.getPrice())
+                        .policyList(PolicyMapper.INSTANCE.toResponseList(detail.getRoom().getPolicies()))
+                        .serviceList(serviceSelect)
+                        .build();
+
+                bookingDetails.add(bookingCarted);
+                totalPolicyPrice += bookingCarted.getAdultSurcharge() + bookingCarted.getChildSurcharge();
+                totalRoomPrice += bookingCarted.getRoomPrice();
+                totalBookingPrice += bookingCarted.getTotalPrice();
+            }
+            HistoryBooking historyBooking = HistoryBooking.builder()
+                    .bookingId(booking.getId())
+                    .paymentStatus(booking.getStatus())
+                    .customer(booking.getUser().getEmail())
+                    .bookingDate(booking.getCreateAt())
+                    .totalRoomBooking(booking.getBookingRooms().size())
+                    .totalRoomPrice(totalRoomPrice)
+                    .totalBookingPrice(totalBookingPrice)
+                    .totalPolicyPrice(totalPolicyPrice)
+                    .bookingRoomDetails(bookingDetails)
+                    .build();
+            historyBookingList.add(historyBooking);
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(200)
+                                .message("HISTORY_SUCCESS")
+                                .description("Danh sách lịch sử thanh toán của khách sạn.")
+                                .data(historyBookingList)
+                                .build()
+                );
+    }
+
     private CartDetailResponse getBillDetail(Booking booking) {
         List<BookingRoomDetail> bookingDetails = new ArrayList<>();
         int totalPolicyPrice= 0,totalBookingPrice = 0, totalRoomPrice = 0;

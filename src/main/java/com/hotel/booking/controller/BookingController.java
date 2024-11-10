@@ -51,4 +51,8 @@ public class BookingController {
     public ResponseEntity<?> checkBill(@RequestBody CheckBillRequest check) throws Exception {
             return bookingService.checkBill(check.getTransId(),check.getPaymentId());
     }
+    @GetMapping("history")
+    public ResponseEntity<?> history() {
+        return bookingService.historyBooking();
+    }
 }
