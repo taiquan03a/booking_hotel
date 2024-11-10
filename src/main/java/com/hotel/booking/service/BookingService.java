@@ -15,4 +15,5 @@ public interface BookingService {
     Map<String, Object> payment(Principal principal, Long customerId) throws Exception;
     ResponseEntity<?> checkBill(String transId,int paymentId) throws Exception;
     ResponseEntity<?> historyBooking();
+    ResponseEntity<?> userSelect(int roomId,int roomNumber,Principal principal);
 }

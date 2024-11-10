@@ -43,7 +43,7 @@ public class BookingController {
     ) {
         return bookingService.editCart(principal,adult,child,infant,serviceId,bookingRoomId);
     }
-    @PostMapping("payment/{customerId}")
+    @GetMapping("payment/{customerId}")
     public Map<String, Object> place(@PathVariable Long customerId,Principal principal) throws Exception {
         return bookingService.payment(principal,customerId);
     }

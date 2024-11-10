@@ -54,7 +54,7 @@ public class IBookingService implements BookingService {
                                     .build()
                     );
         RoomDetail roomDetail = roomDetailRepository.findById(createCart.getRoomNumberId()).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
-        if(!roomDetail.getBookingRooms().isEmpty()){
+        if(roomDetail.getBookingRooms().size() != 0){
             for(BookingRoom bookingRoom : roomDetail.getBookingRooms()){
                 if(
                         bookingRoom.getStatus().equals(String.valueOf(BookingStatusEnum.BOOKED)) &&
@@ -399,7 +399,7 @@ public class IBookingService implements BookingService {
         Bill bill = billRepository.findById(paymentId).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
         Booking booking = billRepository.findBookingByBillId(paymentId);
         Map<String,Object> kq = zaloPayService.getStatusByApptransid(transId);
-        if(!kq.get("returncode").equals("1")){
+        if(kq.get("returncode") != null && (Integer) kq.get("returncode") != 1){
             bill.setStatus("FAIL");
             billRepository.save(bill);
             booking.setStatus(String.valueOf(BookingStatusEnum.CANCELED));
@@ -523,6 +523,11 @@ public class IBookingService implements BookingService {
                                 .data(historyBookingList)
                                 .build()
                 );
+    }
+
+    @Override
+    public ResponseEntity<?> userSelect(int roomId, int roomNumber,Principal principal) {
+        return null;
     }
 
     private CartDetailResponse getBillDetail(Booking booking) {
