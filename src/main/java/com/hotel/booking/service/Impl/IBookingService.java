@@ -550,8 +550,80 @@ public class IBookingService implements BookingService {
                                     .description("Vui lòng đăng nhập trước khi đặt phòng.")
                                     .build()
                     );
-
-        return null;
+        Room room = roomRepository.findById(createCartUser.getRoomId()).orElseThrow(()->new AppException(ErrorCode.NOT_FOUND));
+        List<RoomDetail> roomDetailList = roomDetailRepository
+                .findAvailableRooms(createCartUser.getCheckinDate()
+                        .atTime(14,0),createCartUser.getCheckoutDate().atTime(12,0),room);
+        if(roomDetailList.size() < createCartUser.getRoomNumber())
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(
+                            ApiResponse.builder()
+                                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                                    .message("NOT_ROOM")
+                                    .description("Số phòng bạn chọn quá số lượng phòng trống.")
+                                    .build()
+                    );
+        List<BookingRoom> bookingRoomList = new ArrayList<>();
+        for(RoomDetail roomDetail : roomDetailList){
+            List<Booking> bookingUser = bookingRepository.findByUser(user);
+            Booking bookingCart = bookingUser.stream()
+                    .filter(booking -> booking.getStatus() != null && booking.getStatus().equals(String.valueOf(BookingStatusEnum.CART)))
+                    .findFirst()
+                    .orElse(null);
+            if(bookingCart == null){
+                bookingCart = new Booking();
+                bookingCart.setUser(user);
+                bookingCart.setSumRoom(0);
+                bookingCart.setSumPrice(0);
+                bookingCart.setStatus(String.valueOf(BookingStatusEnum.CART));
+                bookingRepository.save(bookingCart);
+            }else{
+                List<BookingRoom> roomDetailCart = bookingCart.getBookingRooms();
+                for(BookingRoom roomCart : roomDetailCart){
+                    if(roomCart.getRoomDetail().getId() == roomDetail.getId()){
+                        return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(
+                                        ApiResponse.builder()
+                                                .statusCode(406)
+                                                .message("ROOM_CARTED")
+                                                .description("Phòng này đã được bạn chọn rồi vui lòng chọn phòng khác.")
+                                                .build()
+                                );
+                    }
+                }
+            }
+            BookingRoom bookingRoom = BookingRoom.builder()
+                    .sumAdult(1)
+                    .sumChildren(0)
+                    .sumInfant(0)
+                    .checkin(createCartUser.getCheckinDate().atTime(14,0))
+                    .checkout(createCartUser.getCheckoutDate().atTime(12,0))
+                    .status(String.valueOf(BookingStatusEnum.CART))
+                    .statusTime(LocalDateTime.now())
+                    .serviceId("0")
+                    .adultSurcharge(0)
+                    .childSurcharge(0)
+                    .roomDetail(roomDetail)
+                    .booking(bookingCart)
+                    .price(room.getPrice())
+                    .build();
+            bookingRoomRepository.save(bookingRoom);
+            bookingCart.setSumRoom(bookingCart.getSumRoom() + 1);
+            bookingCart.setSumPrice(bookingCart.getSumPrice() + bookingRoom.getPrice());
+            bookingRepository.save(bookingCart);
+            bookingRoomList.add(bookingRoom);
+        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("ADD_CART_SUCCESS")
+                                .data(bookingRoomList)
+                                .build()
+                );
     }
 
     private CartDetailResponse getBillDetail(Booking booking) {

@@ -1,6 +1,7 @@
 package com.hotel.booking.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -65,6 +66,7 @@ public class RoomDetail {
     @Column(name = "update_by")
     private String updateBy;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "roomDetail")
     private Set<BookingRoom> bookingRooms = new LinkedHashSet<>();
 

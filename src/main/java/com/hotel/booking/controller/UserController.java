@@ -1,6 +1,8 @@
 package com.hotel.booking.controller;
 
+import com.hotel.booking.dto.booking.CreateCartUser;
 import com.hotel.booking.dto.placeRoom.PlaceRoomRequest;
+import com.hotel.booking.service.BookingService;
 import com.hotel.booking.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +18,14 @@ import java.security.Principal;
 @RequiredArgsConstructor
 public class UserController {
     final private RoomService roomService;
+    final private BookingService bookingService;
 
     @PostMapping("place")
     public ResponseEntity<?> place(@RequestBody PlaceRoomRequest placeRoomRequest, Principal principal) {
         return roomService.placeRoom(placeRoomRequest, principal);
     }
-
+    @PostMapping("add_cart")
+    public ResponseEntity<?> selectRoom(@RequestBody CreateCartUser createCartUser, Principal principal) {
+        return bookingService.userSelect(createCartUser, principal);
+    }
 }
