@@ -16,7 +16,9 @@ public class BookingRoomDetail {
     private int roomNumber;
     private String roomCode;
     private String roomName;
+    private int roomId;
     private String roomType;
+    private int roomTypeId;
     private String image;
     private String checkIn;
     private String checkOut;
