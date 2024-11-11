@@ -568,7 +568,7 @@ public class IBookingService implements BookingService {
                                     .build()
                     );
         List<BookingRoom> bookingRoomList = new ArrayList<>();
-        for(RoomDetail roomDetail : roomDetailList){
+        for(int i = 0; i < createCartUser.getRoomNumber();i++){
             List<Booking> bookingUser = bookingRepository.findByUser(user);
             Booking bookingCart = bookingUser.stream()
                     .filter(booking -> booking.getStatus() != null && booking.getStatus().equals(String.valueOf(BookingStatusEnum.CART)))
@@ -584,7 +584,7 @@ public class IBookingService implements BookingService {
             }else{
                 List<BookingRoom> roomDetailCart = bookingCart.getBookingRooms();
                 for(BookingRoom roomCart : roomDetailCart){
-                    if(roomCart.getRoomDetail().getId() == roomDetail.getId()){
+                    if(roomCart.getRoomDetail().getId() == roomDetailList.get(i).getId()){
                         return ResponseEntity
                                 .status(HttpStatus.BAD_REQUEST)
                                 .body(
@@ -608,7 +608,7 @@ public class IBookingService implements BookingService {
                     .serviceId("0")
                     .adultSurcharge(0)
                     .childSurcharge(0)
-                    .roomDetail(roomDetail)
+                    .roomDetail(roomDetailList.get(i))
                     .booking(bookingCart)
                     .price(room.getPrice())
                     .build();
