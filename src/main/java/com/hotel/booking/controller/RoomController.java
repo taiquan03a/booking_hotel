@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDate;
 
 @RestController
 @RequestMapping("api/v1/room")
@@ -33,8 +34,12 @@ public class RoomController {
         return roomService.getRoom(id);
     }
     @GetMapping("/getByRank/{rankId}")
-    ResponseEntity<?> getRoomByRank(@PathVariable() int rankId) {
-        return roomService.getRoomByRank(rankId);
+    ResponseEntity<?> getRoomByRank(
+            @PathVariable() int rankId,
+            @RequestParam LocalDate  startDate,
+            @RequestParam LocalDate endDate
+            ) {
+        return roomService.getRoomByRank(startDate,endDate,rankId);
     }
     @GetMapping("admin/getAll")
     ResponseEntity<?> getRoomByRankAdmin(@RequestParam(required = false) String rankId) {

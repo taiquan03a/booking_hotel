@@ -291,15 +291,12 @@ public class IRoomService implements RoomService {
     }
 
     @Override
-    public ResponseEntity<?> getRoomByRank(int rankId) {
+    public ResponseEntity<?> getRoomByRank(LocalDate startDate, LocalDate endDate,int rankId) {
         RoomRank rank = roomRankRepository.findById(rankId).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
         List<Room> roomList = roomRepository.findAllByRoomRank(rank);
         List<RoomUserResponse> roomUserResponseList = new ArrayList<>();
         for (Room room : roomList) {
-            List<RoomDetail> roomAvailable = room.getRoomDetails()
-                    .stream()
-                    .filter(roomDetail -> String.valueOf(RoomStatus.AVAILABLE).equals(roomDetail.getStatus()))
-                    .toList();
+            List<RoomDetail> roomAvailable = roomDetailRepository.findAvailableRooms(startDate.atTime(14,0),endDate.atTime(12,0),room);
             if (!roomAvailable.isEmpty()) {
                 RoomUserResponse roomResponse = RoomUserResponse.builder()
                         .id(room.getId())
