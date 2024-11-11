@@ -23,4 +23,10 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("select count (u) > 0 from User u JOIN u.roles r WHERE u.email = :email AND r.role = 'ROLE_USER'")
     boolean existsCustomerByEmail(@Param("email") String email);
+
+    @Query("select count(u) from User u join u.roles r where r.role = 'ROLE_USER'")
+    int countCustomer();
+
+    @Query("select count(u) from User u join u.roles r where r.role != 'ROLE_USER'")
+    int countUser();
 }

@@ -17,4 +17,5 @@ public interface BookingService {
     ResponseEntity<?> checkBill(String transId,int paymentId) throws Exception;
     ResponseEntity<?> historyBooking();
     ResponseEntity<?> userSelect(CreateCartUser createCartUser, Principal principal);
+    ResponseEntity<?> dashBoard(Principal principal);
 }

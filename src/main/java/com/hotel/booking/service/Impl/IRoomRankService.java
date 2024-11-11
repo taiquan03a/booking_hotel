@@ -38,6 +38,7 @@ public class IRoomRankService implements RoomRankService {
     final private RoomBedRepository roomBedRepository;
     final private BedRepository bedRepository;
     final private ImageRepository imageRepository;
+    private final RoomDetailRepository roomDetailRepository;
 
     @Override
     public ResponseEntity<?> getList(int roomNumber,LocalDate startDate, LocalDate endDate,int page, int size) {
@@ -49,7 +50,7 @@ public class IRoomRankService implements RoomRankService {
             List<Room> activeRooms = new ArrayList<>();
             for(Room room : rooms){
                 if(room.getActive()){
-                    List<RoomDetail> roomDetails = room.getRoomDetails().stream().filter(roomDetail -> String.valueOf(RoomStatus.AVAILABLE).equals(roomDetail.getStatus())).toList();
+                    List<RoomDetail> roomDetails = roomDetailRepository.findAvailableRooms(startDate.atTime(14,0),endDate.atTime(12,0),room);
                     System.out.println(roomNumber + " " + roomDetails.size());
                     if(roomDetails.size() >= roomNumber){
                         activeRooms.add(room);

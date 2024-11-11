@@ -2,6 +2,7 @@ package com.hotel.booking.service.Impl;
 
 import com.hotel.booking.dto.ApiResponse;
 import com.hotel.booking.dto.booking.*;
+import com.hotel.booking.dto.dashboard.DashBoard;
 import com.hotel.booking.dto.roomService.RoomServiceResponse;
 import com.hotel.booking.dto.roomService.ServiceRoomSelect;
 import com.hotel.booking.exception.AppException;
@@ -39,6 +40,7 @@ public class IBookingService implements BookingService {
     private final UserRepository userRepository;
     private final ZaloPayService zaloPayService;
     private final BillRepository billRepository;
+    private final ServiceHotelRepository serviceHotelRepository;
 
     @Override
     public ResponseEntity<?> addToCart(CreateCart createCart, Principal principal) {
@@ -311,7 +313,7 @@ public class IBookingService implements BookingService {
         User user = (principal != null) ? (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal() : null;
         Booking booking = bookingRepository.findByUser(user)
                 .stream().filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).findFirst().get();
-        BookingRoom bookingRoom = bookingRoomRepository.findById(bookingRoomId).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
+        BookingRoom bookingRoom = bookingRoomRepository.findById(bookingRoomId).orElseThrow(()-> new AppException(ErrorCode.BOOKING_ROOM_NOT_FOUND));
         if(!bookingRoom.getStatus().equals(String.valueOf(BookingStatusEnum.CART)))
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
@@ -331,7 +333,8 @@ public class IBookingService implements BookingService {
             bookingRoom.setServiceId(serviceId);
             String[] idList = serviceId.split(",");
             for(String id : idList){
-                RoomServiceModel serviceModel = roomServiceModelRepository.findById(Integer.parseInt(id)).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
+
+                RoomServiceModel serviceModel = roomServiceModelRepository.findById(Integer.parseInt(id)).orElseThrow(()-> new AppException(ErrorCode.SERVICE_NOT_FOUND));
                 ServiceRoom serviceRoom = serviceRoomRepository.findByRoomAndService(room,serviceModel);
                 servicePrice += serviceRoom.getPrice();
             }
@@ -624,6 +627,19 @@ public class IBookingService implements BookingService {
                                 .data(bookingRoomList)
                                 .build()
                 );
+    }
+
+    @Override
+    public ResponseEntity<?> dashBoard(Principal principal) {
+        List<Booking> bookingList = bookingRepository.findAll().stream().filter(booking -> booking.getStatus().equals(String.valueOf(BookingStatusEnum.BOOKED))).toList();
+        
+        DashBoard dashBoard = DashBoard.builder()
+                .countService(serviceHotelRepository.countByActiveTrue())
+                .countCustomer(userRepository.countCustomer())
+                .countUser(userRepository.countUser())
+                .countRoom((int) roomDetailRepository.count())
+                .build();
+        return null;
     }
 
     private CartDetailResponse getBillDetail(Booking booking) {
