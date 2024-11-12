@@ -541,12 +541,14 @@ public class IBookingService implements BookingService {
                 totalBookingPrice += bookingCarted.getTotalPrice();
             }
             Bill bill = billRepository.findBillByBooking(booking);
+            String note = (bill != null) ? bill.getNote() : null;
+
             HistoryBooking historyBooking = HistoryBooking.builder()
                     .bookingId(booking.getId())
                     .paymentStatus(booking.getStatus())
                     .customer(booking.getUser().getEmail())
                     .bookingDate(booking.getCreateAt())
-                    .feedback(bill.getNote())
+                    .feedback(note)
                     .totalRoomBooking(booking.getBookingRooms().size())
                     .totalRoomPrice(totalRoomPrice)
                     .totalBookingPrice(totalBookingPrice)
@@ -630,11 +632,13 @@ public class IBookingService implements BookingService {
                 totalRoomPrice += bookingCarted.getRoomPrice();
                 totalBookingPrice += bookingCarted.getTotalPrice();
             }
+            Bill bill = billRepository.findBillByBooking(booking);
+            String note = (bill != null) ? bill.getNote() : null;
             HistoryBooking historyBooking = HistoryBooking.builder()
                     .bookingId(booking.getId())
                     .paymentStatus(booking.getStatus())
                     .bookingDate(booking.getCreateAt())
-                    .feedback(billRepository.findBillByBooking(booking).getNote())
+                    .feedback(note)
                     .totalRoomBooking(booking.getBookingRooms().size())
                     .totalRoomPrice(totalRoomPrice)
                     .totalBookingPrice(totalBookingPrice)
