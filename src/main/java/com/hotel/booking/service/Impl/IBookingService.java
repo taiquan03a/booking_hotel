@@ -730,8 +730,22 @@ public class IBookingService implements BookingService {
     @Override
     public Map<String, Object> userPayment(Principal principal) throws Exception {
         User user = (principal != null) ? (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal() : null;
-        Booking booking = bookingRepository.findByUser(user)
-                .stream().filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).findFirst().get();
+        Optional<Booking> bookingOptional = bookingRepository.findByUser(user)
+                .stream()
+                .filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART)))
+                .findFirst();
+        if(!bookingOptional.isPresent()){
+            return (Map<String, Object>) ResponseEntity
+                    .status(HttpStatus.NOT_FOUND)
+                    .body(
+                            ApiResponse.builder()
+                                    .statusCode(HttpStatus.NOT_FOUND.value())
+                                    .message("ROOM_OF_CART_NOT_FOUND")
+                                    .description("Không có phòng trong giỏ.")
+                                    .build()
+                    );
+        }
+        Booking booking = bookingOptional.get();
         booking.setStatus(String.valueOf(BookingStatusEnum.BOOKED));
         booking.setCreateBy(user.getEmail());
         booking.setCreateAt(LocalDateTime.now());
