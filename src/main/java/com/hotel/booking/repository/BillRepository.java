@@ -11,4 +11,5 @@ import org.springframework.stereotype.Repository;
 public interface BillRepository extends JpaRepository<Bill, Integer> {
     @Query("SELECT b.booking FROM Bill b WHERE b.id = :billId")
     Booking findBookingByBillId(@Param("billId") Integer billId);
+    Bill findBillByBooking(Booking booking);
 }

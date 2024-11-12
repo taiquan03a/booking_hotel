@@ -10,7 +10,7 @@ import java.util.List;
 
 @Builder
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
+//@JsonInclude(JsonInclude.Include.NON_NULL)
 public class HistoryBooking {
     private int bookingId;
     private String paymentStatus;
@@ -18,6 +18,7 @@ public class HistoryBooking {
     private int totalPolicyPrice;
     private int totalBookingPrice;
     private int totalRoomBooking;
+    private String feedback;
     private String customer;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private LocalDateTime bookingDate;
