@@ -47,7 +47,7 @@ public class BookingController {
     public Map<String, Object> place(@PathVariable Long customerId,Principal principal) throws Exception {
         return bookingService.payment(principal,customerId);
     }
-    @GetMapping("check_bill")
+    @PostMapping("check_bill")
     public ResponseEntity<?> checkBill(@RequestBody CheckBillRequest check) throws Exception {
             return bookingService.checkBill(check.getTransId(),check.getPaymentId());
     }
