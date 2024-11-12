@@ -12,4 +12,5 @@ public class DashBoard {
     private int countService;
     private int countRoom;
     private List<Chart> chart;
+    private CircleChart circleChart;
 }

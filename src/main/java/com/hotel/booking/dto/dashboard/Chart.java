@@ -8,6 +8,6 @@ import java.time.LocalDate;
 @Data
 @Builder
 public class Chart {
-    private LocalDate day;
-    private int price;
+    private String day;
+    private long price;
 }

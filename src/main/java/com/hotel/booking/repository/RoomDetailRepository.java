@@ -37,4 +37,14 @@ public interface RoomDetailRepository extends JpaRepository<RoomDetail, Integer>
             "AND CURRENT_TIMESTAMP BETWEEN br.checkin AND br.checkout AND rd.room = :room")
     List<RoomDetail> findCurrentlyBookedRooms(@Param("room") Room room);
 
+    @Query("SELECT count (rd) FROM RoomDetail rd " +
+            "JOIN BookingRoom br ON rd.id = br.roomDetail.id " +
+            "WHERE br.status = 'CART' " +
+            "AND CURRENT_TIMESTAMP BETWEEN br.checkin AND br.checkout")
+    Long countRoomCart();
+    @Query("SELECT count (rd) FROM RoomDetail rd " +
+            "JOIN BookingRoom br ON rd.id = br.roomDetail.id " +
+            "WHERE br.status = 'BOOKED' " +
+            "AND CURRENT_TIMESTAMP BETWEEN br.checkin AND br.checkout")
+    Long countRoomBooked();
 }

@@ -2,6 +2,8 @@ package com.hotel.booking.service.Impl;
 
 import com.hotel.booking.dto.ApiResponse;
 import com.hotel.booking.dto.booking.*;
+import com.hotel.booking.dto.dashboard.Chart;
+import com.hotel.booking.dto.dashboard.CircleChart;
 import com.hotel.booking.dto.dashboard.DashBoard;
 import com.hotel.booking.dto.roomService.RoomServiceResponse;
 import com.hotel.booking.dto.roomService.ServiceRoomSelect;
@@ -22,7 +24,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -393,6 +398,8 @@ public class IBookingService implements BookingService {
         Booking booking = bookingRepository.findByUser(user)
                 .stream().filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).findFirst().get();
         booking.setUser(customer);
+        booking.setCreateAt(LocalDateTime.now());
+        booking.setCreateBy(user.getEmail());
         booking.setStatus(String.valueOf(BookingStatusEnum.BOOKED));
         booking.getBookingRooms().forEach(
                 bookingRoom -> bookingRoom.setStatus(String.valueOf(BookingStatusEnum.BOOKED))
@@ -420,6 +427,7 @@ public class IBookingService implements BookingService {
             bill.setStatus("FAIL");
             billRepository.save(bill);
             booking.setStatus(String.valueOf(BookingStatusEnum.CANCELED));
+            booking.setUpdateAt(LocalDateTime.now());
             booking.getBookingRooms().forEach(
                     bookingRoom -> bookingRoom.setStatus(String.valueOf(BookingStatusEnum.CANCELED))
             );
@@ -438,6 +446,7 @@ public class IBookingService implements BookingService {
         bill.setStatus("SUCCESS");
         billRepository.save(bill);
         booking.setStatus(String.valueOf(BookingStatusEnum.BOOKED));
+        booking.setUpdateAt(LocalDateTime.now());
         booking.getBookingRooms().forEach(
                 bookingRoom -> bookingRoom.setStatus(String.valueOf(BookingStatusEnum.BOOKED))
         );
@@ -543,6 +552,93 @@ public class IBookingService implements BookingService {
     }
 
     @Override
+    public ResponseEntity<?> userHistoryBooking(Principal principal) {
+        User user = (principal != null) ? (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal() : null;
+        List<Booking> bookingList = bookingRepository.findByUser(user)
+                .stream().filter(booking -> !booking.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).toList();
+        List<HistoryBooking> historyBookingList = new ArrayList<>();
+        for(Booking booking: bookingList){
+            List<BookingRoomDetail> bookingDetails = new ArrayList<>();
+            int totalPolicyPrice= 0,totalBookingPrice = 0, totalRoomPrice = 0;
+            for(BookingRoom bookingRoom: booking.getBookingRooms()){
+                RoomDetail detail = bookingRoom.getRoomDetail();
+                List<ServiceRoomSelect> serviceSelect = new ArrayList<>();
+                List<Integer> serviceSelectedId = bookingRoom.getServiceId().equals("0")
+                        ? List.of()
+                        : Arrays.stream(bookingRoom.getServiceId().split(","))
+                        .map(Integer::parseInt)
+                        .toList();
+
+                for(RoomServiceModel serviceModel : detail.getRoom().getService()){
+                    ServiceRoom serviceRoom = serviceRoomRepository.findByRoomAndService(detail.getRoom(),serviceModel);
+                    boolean exists = false;
+                    for(int it : serviceSelectedId){
+                        if(it == serviceModel.getId()) {
+                            exists = true;
+                            break;
+                        }
+                    }
+                    if(serviceRoom != null){
+                        ServiceRoomSelect select = ServiceRoomSelect.builder()
+                                .id(serviceModel.getId())
+                                .name(serviceModel.getName())
+                                .selected(exists)
+                                .price(serviceRoom.getPrice())
+                                .build();
+                        serviceSelect.add(select);
+                    }
+                }
+                BookingRoomDetail bookingCarted = BookingRoomDetail.builder()
+                        .bookingRoomId(bookingRoom.getId())
+                        .roomNumber(detail.getRoomNumber())
+                        .roomCode(detail.getRoomCode())
+                        .roomName(detail.getRoom().getName())
+                        .roomType(detail.getRoom().getRoomRank().getName())
+                        .image(detail.getRoom().getRoomRank().getImages().get(0).getPath())
+                        .checkIn(String.valueOf(bookingRoom.getCheckin()))
+                        .checkOut(String.valueOf(bookingRoom.getCheckout()))
+                        .adults(bookingRoom.getSumAdult())
+                        .children(bookingRoom.getSumChildren())
+                        .infant(bookingRoom.getSumInfant())
+                        .adultSurcharge(bookingRoom.getAdultSurcharge())
+                        .childSurcharge(bookingRoom.getChildSurcharge())
+                        .roomPrice(detail.getRoom().getPrice())
+                        .totalPrice(bookingRoom.getPrice())
+                        .policyList(PolicyMapper.INSTANCE.toResponseList(detail.getRoom().getPolicies()))
+                        .serviceList(serviceSelect)
+                        .build();
+
+                bookingDetails.add(bookingCarted);
+                totalPolicyPrice += bookingCarted.getAdultSurcharge() + bookingCarted.getChildSurcharge();
+                totalRoomPrice += bookingCarted.getRoomPrice();
+                totalBookingPrice += bookingCarted.getTotalPrice();
+            }
+            HistoryBooking historyBooking = HistoryBooking.builder()
+                    .bookingId(booking.getId())
+                    .paymentStatus(booking.getStatus())
+                    .bookingDate(booking.getCreateAt())
+                    .totalRoomBooking(booking.getBookingRooms().size())
+                    .totalRoomPrice(totalRoomPrice)
+                    .totalBookingPrice(totalBookingPrice)
+                    .totalPolicyPrice(totalPolicyPrice)
+                    .bookingRoomDetails(bookingDetails)
+                    .build();
+            historyBookingList.add(historyBooking);
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(200)
+                                .message("USER_HISTORY_SUCCESS")
+                                .description("Danh sách lịch sử thanh toán của khách sạn của " + user.getEmail())
+                                .data(historyBookingList)
+                                .build()
+                );
+    }
+
+    @Override
     public ResponseEntity<?> userSelect(CreateCartUser createCartUser,Principal principal) {
         User user = (principal != null) ? (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal() : null;
         if(user == null)
@@ -632,16 +728,93 @@ public class IBookingService implements BookingService {
     }
 
     @Override
-    public ResponseEntity<?> dashBoard(Principal principal) {
-        List<Booking> bookingList = bookingRepository.findAll().stream().filter(booking -> booking.getStatus().equals(String.valueOf(BookingStatusEnum.BOOKED))).toList();
-        
+    public Map<String, Object> userPayment(Principal principal) throws Exception {
+        User user = (principal != null) ? (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal() : null;
+        Booking booking = bookingRepository.findByUser(user)
+                .stream().filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).findFirst().get();
+        booking.setStatus(String.valueOf(BookingStatusEnum.BOOKED));
+        booking.setCreateBy(user.getEmail());
+        booking.setCreateAt(LocalDateTime.now());
+        booking.getBookingRooms().forEach(
+                bookingRoom -> bookingRoom.setStatus(String.valueOf(BookingStatusEnum.BOOKED))
+        );
+        bookingRepository.save(booking);
+        Map<String,Object> kq = zaloPayService.createPayment("booking",Long.valueOf(booking.getSumPrice()), Long.valueOf(booking.getId()));
+        Bill bill = Bill.builder()
+                .booking(booking)
+                .paymentAmount(String.valueOf(booking.getSumPrice()))
+                .status("PROCESSING")
+                .transId(kq.get("apptransid").toString())
+                .createAt(LocalDateTime.now())
+                .build();
+        billRepository.save(bill);
+        kq.put("paymentId",bill.getId());
+        return kq;
+    }
+
+    @Override
+    public ResponseEntity<?> dashBoard(String type) {
+        List<Chart> chartList = new ArrayList<>();
+        //List<Booking> bookingList = bookingRepository.findAll().stream().filter(booking -> booking.getStatus().equals(String.valueOf(BookingStatusEnum.BOOKED))).toList();
+        if(type.equals("month")){
+            LocalDateTime currentTime = LocalDateTime.now();
+            int currentYear = currentTime.getYear();
+            for(int i = 1 ; i <= 12; i++){
+                YearMonth yearMonth = YearMonth.of(currentYear, i); //tháng của năm vd 2024-01
+                LocalDateTime startDate = yearMonth.atDay(1).atStartOfDay(); //ngày bắt đầu của tháng
+                LocalDateTime endDate = yearMonth.atEndOfMonth().atStartOfDay(); // ngày kết thúc của tháng
+                Long totalPriceOfMonth = bookingRepository.sumPrice(startDate,endDate);
+                if(totalPriceOfMonth == null){
+                    totalPriceOfMonth = 0L;
+                }
+                chartList.add(Chart.builder()
+                                .day(String.valueOf(i))
+                                .price(totalPriceOfMonth)
+                                .build());
+            }
+        }else if(type.equals("day")){
+            LocalDate today = LocalDate.now();
+            YearMonth currentMonth = YearMonth.of(today.getYear(), today.getMonth());
+            for (int day = 1; day <= currentMonth.lengthOfMonth(); day++) {
+                LocalDate date = currentMonth.atDay(day);
+                Long totalPriceDay = bookingRepository.sumPrice(date.atStartOfDay(),date.atTime(LocalTime.MAX));
+                if(totalPriceDay == null){
+                    totalPriceDay = 0L;
+                }
+                chartList.add(Chart.builder()
+                                .day(String.valueOf(date))
+                                .price(totalPriceDay)
+                        .build());
+            }
+        }
+        Long booked = roomDetailRepository.countRoomBooked();
+        if(booked == null) booked = 0L;
+        Long carted = roomDetailRepository.countRoomCart();
+        if (carted == null) carted = 0L;
+        Long available = roomDetailRepository.count() - booked - carted;
+        CircleChart chart = CircleChart.builder()
+                .roomBooked(booked)
+                .roomCart(carted)
+                .totalRoom(roomDetailRepository.count())
+                .roomAvailable(available)
+                .build();
         DashBoard dashBoard = DashBoard.builder()
                 .countService(serviceHotelRepository.countByActiveTrue())
                 .countCustomer(userRepository.countCustomer())
                 .countUser(userRepository.countUser())
                 .countRoom((int) roomDetailRepository.count())
+                .chart(chartList)
+                .circleChart(chart)
                 .build();
-        return null;
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("DASHBOARD_SUCCESS")
+                                .data(dashBoard)
+                                .build()
+                );
     }
 
     private CartDetailResponse getBillDetail(Booking booking) {

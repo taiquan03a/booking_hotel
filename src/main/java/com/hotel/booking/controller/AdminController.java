@@ -5,6 +5,7 @@ import com.hotel.booking.dto.user.CreateCustomer;
 import com.hotel.booking.dto.user.CreateUserRequest;
 import com.hotel.booking.dto.user.EditCustomer;
 import com.hotel.booking.dto.user.EditUserRequest;
+import com.hotel.booking.service.BookingService;
 import com.hotel.booking.service.RoomService;
 import com.hotel.booking.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 public class AdminController {
     final private UserService userService;
     final private RoomService roomService;
+    final private BookingService bookingService;
 
     @GetMapping("role")
     public ResponseEntity<?> getRole() {
@@ -74,5 +76,9 @@ public class AdminController {
     @PostMapping("place")
     public ResponseEntity<?> place(@RequestBody PlaceRoomRequest placeRoomRequest, Principal principal) {
         return roomService.placeRoom(placeRoomRequest,principal);
+    }
+    @GetMapping("dashboard")
+    public ResponseEntity<?> getDashboard(@RequestParam(defaultValue = "day") String type) {
+        return bookingService.dashBoard(type);
     }
 }

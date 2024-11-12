@@ -6,12 +6,10 @@ import com.hotel.booking.service.BookingService;
 import com.hotel.booking.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/v1/user")
@@ -27,5 +25,13 @@ public class UserController {
     @PostMapping("add_cart")
     public ResponseEntity<?> selectRoom(@RequestBody CreateCartUser createCartUser, Principal principal) {
         return bookingService.userSelect(createCartUser, principal);
+    }
+    @PostMapping("payment")
+    public Map<String, Object> payment(Principal principal) throws Exception {
+        return bookingService.userPayment(principal);
+    }
+    @GetMapping("history")
+    public ResponseEntity<?> history(Principal principal) {
+        return bookingService.userHistoryBooking(principal);
     }
 }
