@@ -1,9 +1,12 @@
 package com.hotel.booking.controller;
 
+import com.hotel.booking.dto.auth.OtpRequest;
+import com.hotel.booking.dto.auth.ResetPassword;
 import com.hotel.booking.dto.booking.CreateCartUser;
 import com.hotel.booking.dto.placeRoom.PlaceRoomRequest;
 import com.hotel.booking.service.BookingService;
 import com.hotel.booking.service.RoomService;
+import com.hotel.booking.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,6 +21,7 @@ import java.util.Map;
 public class UserController {
     final private RoomService roomService;
     final private BookingService bookingService;
+    final private UserService userService;
 
     @PostMapping("place")
     public ResponseEntity<?> place(@RequestBody PlaceRoomRequest placeRoomRequest, Principal principal) {
@@ -34,5 +38,17 @@ public class UserController {
     @GetMapping("history")
     public ResponseEntity<?> history(Principal principal) {
         return bookingService.userHistoryBooking(principal);
+    }
+    @GetMapping("check_email")
+    public ResponseEntity<?> checkEmail(@RequestParam String email) {
+        return userService.checkEmail(email);
+    }
+    @GetMapping("otp")
+    public ResponseEntity<?> otp(@RequestBody OtpRequest otp) {
+        return userService.checkOtp(otp);
+    }
+    @PostMapping("reset_password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPassword resetPassword){
+        return userService.resetPassword(resetPassword);
     }
 }

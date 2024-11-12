@@ -1,6 +1,9 @@
 package com.hotel.booking.service.Impl;
 
 import com.hotel.booking.dto.ApiResponse;
+import com.hotel.booking.dto.auth.EmailDetails;
+import com.hotel.booking.dto.auth.OtpRequest;
+import com.hotel.booking.dto.auth.ResetPassword;
 import com.hotel.booking.dto.user.CreateCustomer;
 import com.hotel.booking.dto.user.CreateUserRequest;
 import com.hotel.booking.dto.user.EditCustomer;
@@ -14,6 +17,7 @@ import com.hotel.booking.model.Role;
 import com.hotel.booking.model.User;
 import com.hotel.booking.repository.RoleRepository;
 import com.hotel.booking.repository.UserRepository;
+import com.hotel.booking.service.EmailService;
 import com.hotel.booking.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -21,10 +25,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.security.SecureRandom;
+import java.util.*;
 
 import static com.hotel.booking.constants.ErrorMessage.EMAIL_IN_USE;
 
@@ -34,6 +36,9 @@ public class IUserService implements UserService {
     final private UserRepository userRepository;
     final private RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    final private EmailService emailService;
+
+    private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
     @Override
     public ResponseEntity<?> getRoles() {
@@ -239,6 +244,62 @@ public class IUserService implements UserService {
                                 .data(UserMapper.INSTANCE.userToUserResponse(user))
                                 .build()
                 );
+    }
+
+    @Override
+    public ResponseEntity<?> checkEmail(String email) {
+        var existedUser = userRepository.findByEmail(email);
+        if (!existedUser.isPresent())
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ErrorResponse.builder()
+                    .statusCode(404)
+                    .message(String.valueOf(HttpStatus.NOT_FOUND))
+                    .description("Email chưa được đăng ký tài khoản.")
+                    .timestamp(new Date(System.currentTimeMillis()))
+                    .build());
+        SecureRandom random = new SecureRandom();
+        StringBuilder otp = new StringBuilder(6);
+        for (int i = 0; i < 6; i++) {
+            int index = random.nextInt(CHARACTERS.length());
+            otp.append(CHARACTERS.charAt(index));
+        }
+        User user = existedUser.get();
+        EmailDetails emailDetails = new EmailDetails();
+        emailDetails.setSubject("Reset mật khẩu!");
+        emailDetails.setRecipient(user.getEmail());
+        emailDetails.setMsgBody("Chào " + email +
+                ",\nChúng tôi rất vui thông báo rằng chúng tôi đã nhân được yêu cầu reset mật khẩu của bạn tại Nhóm 7 Hotel.Dưới đây là thông tin tài khoản của bạn:\n"
+                + "\nMật khẩu mới dành cho tài khoản " + email + " :"
+                + "\n\n" + otp.toString()
+                + "\n\n"
+                + "\nVới tài khoản này, bạn có thể truy cập Nhom 7 Hotel và tận hưởng các dịch vụ và tính năng mà chúng tôi cung cấp."
+                + "\nNếu bạn có bất kỳ câu hỏi hoặc cần hỗ trợ gì, xin đừng ngần ngại liên hệ với chúng tôi tại shoesshopvn03@gmail.com."
+                + "\nChúng tôi rất mong được phục vụ bạn và chúc bạn có trải nghiệm tuyệt vời với Shoes Shop."
+                + "\nXin chân thành cảm ơn đã lựa chọn chúng tôi."
+                + "\n\nTrân trọng,\n" +
+                "Nhom 7 Hotel");
+        emailService.sendSimpleMail(emailDetails);
+        user.setPassword(passwordEncoder.encode(otp.toString()));
+        userRepository.save(user);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("OTP_SUCCESS")
+                                .description("Mật khẩu mới đã được gửi đến " + email + ".Vui lòng kiểm tra email của bạn.")
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> checkOtp(OtpRequest otp) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<?> resetPassword(ResetPassword resetPassword) {
+        return null;
     }
 
 }

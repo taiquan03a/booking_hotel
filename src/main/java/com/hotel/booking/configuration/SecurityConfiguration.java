@@ -48,6 +48,8 @@ public class SecurityConfiguration{
                     .requestMatchers(
                             new AntPathRequestMatcher("/api/v1/auth/register/**"),
                             new AntPathRequestMatcher("/api/v1/auth/register"),
+                            new AntPathRequestMatcher("/api/v1/user/otp"),
+                            new AntPathRequestMatcher("/api/v1/user/check_email"),
                             new AntPathRequestMatcher("/api/v1/auth/login"),
                             new AntPathRequestMatcher("/api/v1/auth/refresh"),
                             new AntPathRequestMatcher("/api/v1/room/getByRank/**"),

@@ -102,7 +102,9 @@ public class IBookingService implements BookingService {
             childPlus = createCart.getChildren() * childPolicy;
         }else{
             int x = room.getAdultNumber() - createCart.getAdults();
-            childPlus =(createCart.getChildren() - x) * childPolicy;
+            if(createCart.getChildren() >= x)
+                childPlus =(createCart.getChildren() - x) * childPolicy;
+            //childPlus =(createCart.getChildren() - x) * childPolicy;
         }
         List<Booking> bookingUser = bookingRepository.findByUser(user);
         Booking bookingCart = bookingUser.stream()

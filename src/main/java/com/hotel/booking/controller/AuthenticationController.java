@@ -52,7 +52,6 @@ public class AuthenticationController {
 
 
     @PostMapping("/password")
-    @PreAuthorize("hasAnyRole('ROLE_ADMINISTRATOR')")
     public ResponseEntity<?> updatePassword(@Valid @RequestBody UpdatePasswordRequest updatePasswordRequest, Principal connectedUser, BindingResult bindingResult){
         if (bindingResult.hasErrors()){
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new InputFieldException(bindingResult).getMessage());
