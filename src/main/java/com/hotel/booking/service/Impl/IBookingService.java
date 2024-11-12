@@ -842,6 +842,32 @@ public class IBookingService implements BookingService {
                 );
     }
 
+    @Override
+    public ResponseEntity<?> sendFeedback(CreateFeedback createFeedback, Principal principal) {
+        Bill bill = billRepository.findById(createFeedback.getPaymentId()).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
+        if(bill.getStatus().equals(String.valueOf("FAIL")))
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(
+                            ApiResponse.builder()
+                                    .statusCode(HttpStatus.BAD_REQUEST.value())
+                                    .message("BILL_FAIL")
+                                    .description("Đặt phòng thất bại.")
+                                    .build()
+                    );
+        bill.setNote(createFeedback.getFeedback());
+        billRepository.save(bill);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("FEEDBACK_SUCCESS")
+                                .data(bill)
+                                .build()
+                );
+    }
+
     private CartDetailResponse getBillDetail(Booking booking) {
         List<BookingRoomDetail> bookingDetails = new ArrayList<>();
         int totalPolicyPrice= 0,totalBookingPrice = 0, totalRoomPrice = 0;
@@ -877,7 +903,9 @@ public class IBookingService implements BookingService {
                     .bookingRoomId(bookingRoom.getId())
                     .roomNumber(detail.getRoomNumber())
                     .roomCode(detail.getRoomCode())
+                    .roomId(detail.getRoom().getId())
                     .roomName(detail.getRoom().getName())
+                    .roomTypeId(detail.getRoom().getRoomRank().getId())
                     .roomType(detail.getRoom().getRoomRank().getName())
                     .image(detail.getRoom().getRoomRank().getImages().get(0).getPath())
                     .checkIn(String.valueOf(bookingRoom.getCheckin()))

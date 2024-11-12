@@ -2,6 +2,8 @@ package com.hotel.booking.controller;
 
 import com.hotel.booking.dto.booking.CheckBillRequest;
 import com.hotel.booking.dto.booking.CreateCart;
+import com.hotel.booking.dto.booking.CreateFeedback;
+import com.hotel.booking.model.Feedback;
 import com.hotel.booking.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -54,5 +56,9 @@ public class BookingController {
     @GetMapping("history")
     public ResponseEntity<?> history() {
         return bookingService.historyBooking();
+    }
+    @PostMapping("feedback")
+    public ResponseEntity<?> feedback(@RequestBody CreateFeedback feedback, Principal principal) {
+        return bookingService.sendFeedback(feedback,principal);
     }
 }

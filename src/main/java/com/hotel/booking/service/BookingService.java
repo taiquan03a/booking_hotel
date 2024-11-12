@@ -2,6 +2,7 @@ package com.hotel.booking.service;
 
 import com.hotel.booking.dto.booking.CreateCart;
 import com.hotel.booking.dto.booking.CreateCartUser;
+import com.hotel.booking.dto.booking.CreateFeedback;
 import org.springframework.http.ResponseEntity;
 
 import java.security.Principal;
@@ -20,4 +21,5 @@ public interface BookingService {
     ResponseEntity<?> userSelect(CreateCartUser createCartUser, Principal principal);
     Map<String, Object> userPayment(Principal principal) throws Exception;
     ResponseEntity<?> dashBoard(String type);
+    ResponseEntity<?> sendFeedback(CreateFeedback createFeedback, Principal principal);
 }

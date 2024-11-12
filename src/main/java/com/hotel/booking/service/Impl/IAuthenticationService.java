@@ -97,9 +97,9 @@ public class IAuthenticationService implements AuthenticationService {
         }
         // check if new passwords are the same current password
         if (updatePasswordRequest.getNewPassword().equals(updatePasswordRequest.getPassword())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErrorResponse.builder()
-                    .statusCode(400)
-                    .message(String.valueOf(HttpStatus.FORBIDDEN))
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ErrorResponse.builder()
+                    .statusCode(402)
+                    .message("SAME_CURRENT_PASSWORD")
                     .description(NEW_PASSWORD_IS_SAME_CURRENT_PASSWORD)
                     .timestamp(new Date(System.currentTimeMillis()))
                     .build());
@@ -110,7 +110,7 @@ public class IAuthenticationService implements AuthenticationService {
         return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.builder()
                 .statusCode(200)
                 .message(String.valueOf(HttpStatus.OK))
-                .description("Password changed successfully!")
+                .description("Mật khẩu của bạn đã cập nhập thành công.")
                 .timestamp(new Date(System.currentTimeMillis()))
                 .build());
     }

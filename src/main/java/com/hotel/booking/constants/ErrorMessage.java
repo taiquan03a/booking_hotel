@@ -11,7 +11,7 @@ public class ErrorMessage {
     public static final String INACTIVE = "Account is inactivate";
     public static final String EMPTY_PASSWORD_CONFIRMATION = "Password confirmation cannot be empty.";
     public static final String INCORRECT_PASSWORD_CONFIRMATION = "Password confirmation cannot be empty.";
-    public static final String NEW_PASSWORD_IS_SAME_CURRENT_PASSWORD = "New password is same current password, please try another password.";
+    public static final String NEW_PASSWORD_IS_SAME_CURRENT_PASSWORD = "Password mới trùng với password hiện tại, vui lòng thử một password khác";
 
 
 }
