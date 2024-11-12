@@ -238,8 +238,21 @@ public class IBookingService implements BookingService {
     @Override
     public ResponseEntity<?> checkout(Principal principal) {
         User user = (principal != null) ? (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal() : null;
-        Booking booking = bookingRepository.findByUser(user)
-                .stream().filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).findFirst().get();
+        Optional<Booking> bookingOptional = bookingRepository.findByUser(user)
+                .stream()
+                .filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART)))
+                .findFirst();
+        if(!bookingOptional.isPresent())
+            return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.NOT_FOUND.value())
+                                .message("CART_NOT_ROOM")
+                                .description("Không có phòng nào trong giỏ.")
+                                .build()
+                );
+        Booking booking = bookingOptional.get();
         List<BookingRoomDetail> bookingDetails = new ArrayList<>();
         int totalPolicyPrice= 0,totalBookingPrice = 0, totalRoomPrice = 0;
         for(BookingRoom bookingRoom: booking.getBookingRooms()){

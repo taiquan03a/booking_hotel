@@ -6,6 +6,7 @@ import com.hotel.booking.service.BookingService;
 import com.hotel.booking.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -26,7 +27,7 @@ public class UserController {
     public ResponseEntity<?> selectRoom(@RequestBody CreateCartUser createCartUser, Principal principal) {
         return bookingService.userSelect(createCartUser, principal);
     }
-    @PostMapping("payment")
+    @GetMapping("payment")
     public Map<String, Object> payment(Principal principal) throws Exception {
         return bookingService.userPayment(principal);
     }
