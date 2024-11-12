@@ -735,15 +735,11 @@ public class IBookingService implements BookingService {
                 .filter(book -> book.getStatus().equals(String.valueOf(BookingStatusEnum.CART)))
                 .findFirst();
         if(!bookingOptional.isPresent()){
-            return (Map<String, Object>) ResponseEntity
-                    .status(HttpStatus.NOT_FOUND)
-                    .body(
-                            ApiResponse.builder()
-                                    .statusCode(HttpStatus.NOT_FOUND.value())
-                                    .message("ROOM_OF_CART_NOT_FOUND")
-                                    .description("Không có phòng trong giỏ.")
-                                    .build()
-                    );
+            Map<String,Object> error = new HashMap<>();
+            error.put("statusCode",HttpStatus.NOT_FOUND.value());
+            error.put("message","BOOKING_CART_NOT_FOUND");
+            error.put("description","Không có phòng trong giỏ.");
+            return error;
         }
         Booking booking = bookingOptional.get();
         booking.setStatus(String.valueOf(BookingStatusEnum.BOOKED));
