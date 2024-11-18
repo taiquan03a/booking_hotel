@@ -482,7 +482,9 @@ public class IBookingService implements BookingService {
     @Override
     public ResponseEntity<?> historyBooking() {
         List<Booking> bookingList = bookingRepository.findAll().stream()
-                .filter(booking -> !booking.getStatus().equals(String.valueOf(BookingStatusEnum.CART))).toList();
+                .filter(booking -> !booking.getStatus().equals(String.valueOf(BookingStatusEnum.CART)))
+                .sorted(Comparator.comparing(Booking::getId).reversed())
+                .toList();
         List<HistoryBooking> historyBookingList = new ArrayList<>();
         for(Booking booking: bookingList){
             List<BookingRoomDetail> bookingDetails = new ArrayList<>();
