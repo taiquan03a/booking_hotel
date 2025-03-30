@@ -7,6 +7,7 @@ import java.util.List;
 @Data
 @Builder
 public class DashBoard {
+    private Long countBooked;
     private int countUser;
     private int countCustomer;
     private int countService;

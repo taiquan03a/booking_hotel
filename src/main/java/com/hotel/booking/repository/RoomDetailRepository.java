@@ -47,4 +47,11 @@ public interface RoomDetailRepository extends JpaRepository<RoomDetail, Integer>
             "WHERE br.status = 'BOOKED' " +
             "AND CURRENT_TIMESTAMP BETWEEN br.checkin AND br.checkout")
     Long countRoomBooked();
+
+    @Query("select count(b) " +
+            "from Booking b " +
+            "where CAST(b.createAt AS DATE) = CURRENT_DATE " +
+            "and b.createBy = :username " +
+            "and b.status = 'BOOKED'")
+    Long countBookedRoom(@Param("username") String username);
 }

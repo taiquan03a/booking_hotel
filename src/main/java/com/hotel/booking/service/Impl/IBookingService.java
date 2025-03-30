@@ -21,6 +21,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
@@ -787,7 +790,8 @@ public class IBookingService implements BookingService {
     }
 
     @Override
-    public ResponseEntity<?> dashBoard(String type) {
+    public ResponseEntity<?> dashBoard(String type,Principal connectedUser) {
+        var user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
         List<Chart> chartList = new ArrayList<>();
         //List<Booking> bookingList = bookingRepository.findAll().stream().filter(booking -> booking.getStatus().equals(String.valueOf(BookingStatusEnum.BOOKED))).toList();
         if(type.equals("month")){
@@ -826,6 +830,7 @@ public class IBookingService implements BookingService {
         Long carted = roomDetailRepository.countRoomCart();
         if (carted == null) carted = 0L;
         Long available = roomDetailRepository.count() - booked - carted;
+
         CircleChart chart = CircleChart.builder()
                 .roomBooked(booked)
                 .roomCart(carted)
@@ -833,6 +838,7 @@ public class IBookingService implements BookingService {
                 .roomAvailable(available)
                 .build();
         DashBoard dashBoard = DashBoard.builder()
+                .countBooked(roomDetailRepository.countBookedRoom(user.getUsername()))
                 .countService(serviceHotelRepository.countByActiveTrue())
                 .countCustomer(userRepository.countCustomer())
                 .countUser(userRepository.countUser())

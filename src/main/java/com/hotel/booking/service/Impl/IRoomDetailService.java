@@ -1,6 +1,7 @@
 package com.hotel.booking.service.Impl;
 
 import com.hotel.booking.dto.ApiResponse;
+import com.hotel.booking.model.BookingRoom;
 import com.hotel.booking.model.Enum.RoomStatus;
 import com.hotel.booking.dto.roomDetail.CreateRoomDetail;
 import com.hotel.booking.dto.roomDetail.EditRoomDetail;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import java.security.Principal;
 import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -139,19 +142,29 @@ public class IRoomDetailService implements RoomDetailService {
 
     @Override
     public ResponseEntity<?> viewRoom() {
+        List<RoomDetail> roomDetailList = roomDetailRepository.findAll();
+        for(RoomDetail roomDetail : roomDetailList) {
+            Set<BookingRoom> bookingRoomSet = roomDetail.getBookingRooms().stream()
+                    .filter(br -> br.getCheckin().isBefore(LocalDateTime.now()) || br.getCheckin().isEqual(LocalDateTime.now()))
+                    .filter(br -> br.getCheckout().isAfter(LocalDateTime.now()) || br.getCheckout().isEqual(LocalDateTime.now()))
+                    .collect(Collectors.toSet());
+            if (!bookingRoomSet.isEmpty()){
+                roomDetail.setStatus(
+                        bookingRoomSet.stream()
+                                .max(Comparator.comparing(BookingRoom::getStatusTime))
+                                .get().getStatus());
+            }
+        }
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
                         ApiResponse.builder()
                                 .statusCode(HttpStatus.OK.value())
-                                .message("Successfully get list room number null")
+                                .message("Successfully get list room number")
                                 .data(
                                         RoomDetailMapper.
                                                 INSTANCE.toRoomDetailResponseList(
-                                                        roomDetailRepository.findAll()
-                                                                .stream()
-                                                                .filter(detail -> detail.getRoom() == null)
-                                                                .toList()))
+                                                        roomDetailList))
                                 .build()
                 );
     }

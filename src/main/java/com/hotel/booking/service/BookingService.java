@@ -20,6 +20,6 @@ public interface BookingService {
     ResponseEntity<?> userHistoryBooking(Principal principal);
     ResponseEntity<?> userSelect(CreateCartUser createCartUser, Principal principal);
     Map<String, Object> userPayment(Principal principal) throws Exception;
-    ResponseEntity<?> dashBoard(String type);
+    ResponseEntity<?> dashBoard(String type,Principal connectedUser);
     ResponseEntity<?> sendFeedback(CreateFeedback createFeedback, Principal principal);
 }

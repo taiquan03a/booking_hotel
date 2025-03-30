@@ -160,7 +160,7 @@ public class IServiceHotelService implements ServiceHotelService {
         for(ServiceCategory category: categoryList){
             if(category.getActive()){
                 List<ServiceDto> serviceDtoList = new ArrayList<>();
-                for(ServiceHotel serviceHotel: serviceHotelRepository.findServiceHotelsByCategory(category)){
+                for(ServiceHotel serviceHotel: serviceHotelRepository.findServiceHotelsByCategoryAndActive(category,true)){
                     ServiceDto serviceDto = ServiceDto.builder()
                             .name(serviceHotel.getName())
                             .description(serviceHotel.getDescription())

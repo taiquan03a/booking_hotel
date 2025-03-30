@@ -1,19 +1,23 @@
 package com.hotel.booking.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.Nationalized;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "room_service")
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class RoomServiceModel {
     @Id
     @Column(name = "id", nullable = false)
@@ -37,7 +41,8 @@ public class RoomServiceModel {
     private String icon;
 
     @Column(name = "create_at")
-    private Instant createAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    private LocalDateTime createAt;
 
     @Size(max = 255)
     @Nationalized
@@ -45,13 +50,15 @@ public class RoomServiceModel {
     private String createBy;
 
     @Column(name = "update_at")
-    private Instant updateAt;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss", timezone = "Asia/Ho_Chi_Minh")
+    private LocalDateTime updateAt;
 
     @Size(max = 255)
     @Nationalized
     @Column(name = "update_by")
     private String updateBy;
 
+    @JsonIgnore
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "service_room",
             joinColumns = @JoinColumn(name = "service_id"),

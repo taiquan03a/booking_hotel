@@ -9,6 +9,6 @@ import java.util.List;
 @Repository
 public interface ServiceHotelRepository extends JpaRepository<ServiceHotel, Integer> {
     List<ServiceHotel> findAllByActive(boolean active);
-    List<ServiceHotel> findServiceHotelsByCategory(ServiceCategory serviceCategory);
+    List<ServiceHotel> findServiceHotelsByCategoryAndActive(ServiceCategory serviceCategory,boolean active);
     int countByActiveTrue();
 }
