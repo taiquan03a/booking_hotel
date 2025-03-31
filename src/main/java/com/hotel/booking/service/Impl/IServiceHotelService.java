@@ -6,20 +6,19 @@ import com.hotel.booking.dto.serviceHotel.*;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
 import com.hotel.booking.model.*;
-import com.hotel.booking.model.Enum.BookingStatusEnum;
 import com.hotel.booking.repository.*;
 import com.hotel.booking.service.CloudinaryService;
+import com.hotel.booking.service.PaymentService;
 import com.hotel.booking.service.ServiceHotelService;
 import com.hotel.booking.service.ZaloPayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.BindingResult;
 
 import java.security.Principal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +38,7 @@ public class IServiceHotelService implements ServiceHotelService {
     private final BookingRepository bookingRepository;
     private final ServiceRoomRepository serviceRoomRepository;
     private final BillRepository billRepository;
+    private final PaymentService paymentService;
 
     @Override
     public ResponseEntity<?> addServiceHotel(CreateServiceHotel serviceHotel, Principal principal) {
@@ -353,6 +353,7 @@ public class IServiceHotelService implements ServiceHotelService {
                 .orElseThrow(()->new AppException(ErrorCode.SERVICE_NOT_FOUND));
         Room room = roomRepository.findRoomDetailById(bookingRoom.getRoomDetail().getId());
         ServiceRoom serviceRoom = serviceRoomRepository.findByRoomAndService(room, roomServiceModel);
+        String newServiceId = "";
         if(!bookingRoom.getServiceId().equals("0")) {
             if(bookingRoom.getServiceId().length() > 1){
                 String[] bookedServiceId = bookingRoom.getServiceId().split(",");
@@ -383,28 +384,29 @@ public class IServiceHotelService implements ServiceHotelService {
                             );
                 }
             }
-            String newServiceId = bookingRoom.getServiceId() + ","+String.valueOf(bookingServiceRoom.getServiceRoomId());
-            bookingRoom.setServiceId(newServiceId);
+            newServiceId = bookingRoom.getServiceId() + ","+String.valueOf(bookingServiceRoom.getServiceRoomId());
+            //bookingRoom.setServiceId(newServiceId);
 
         }else{
-            bookingRoom.setServiceId(String.valueOf(bookingServiceRoom.getServiceRoomId()));
+            newServiceId = String.valueOf(bookingServiceRoom.getServiceRoomId());
         }
-        int newPrice = bookingRoom.getPrice() + serviceRoom.getPrice();
-        int oldPrice = bookingRoom.getPrice();
-        bookingRoom.setPrice(newPrice);
-        Booking booking = bookingRoom.getBooking();
-        int newSumPrice = booking.getSumPrice() - oldPrice + newPrice;
-        booking.setSumPrice(newSumPrice);
-        booking.setNote(booking.getNote() + "/" + bookingServiceRoom.getNote());
-        bookingRepository.save(booking);
-        bookingRoomRepository.save(bookingRoom);
+//        bookingRoom.setServiceId(newServiceId);
+//        int newPrice = bookingRoom.getPrice() + serviceRoom.getPrice();
+//        int oldPrice = bookingRoom.getPrice();
+//        bookingRoom.setPrice(newPrice);
+//        Booking booking = bookingRoom.getBooking();
+//        int newSumPrice = booking.getSumPrice() - oldPrice + newPrice;
+//        booking.setSumPrice(newSumPrice);
+//        booking.setNote(booking.getNote() + "/" + bookingServiceRoom.getNote());
+        String note = bookingRoom.getBooking().getNote();
+        int servicePrice = serviceRoom.getPrice();
         Map<String,Object> kq = zaloPayService.createPayment(
                 "booking service room",
                 Long.valueOf(serviceRoom.getPrice()),
-                Long.valueOf(booking.getId())
+                Long.valueOf(bookingRoom.getId())
         );
         Bill bill = Bill.builder()
-                .booking(booking)
+                .booking(bookingRoom.getBooking())
                 .paymentDate(String.valueOf(serviceRoom.getId()))
                 .paymentAmount(String.valueOf(serviceRoom.getPrice()))
                 .note("SERVICE_ROOM")
@@ -414,6 +416,7 @@ public class IServiceHotelService implements ServiceHotelService {
                 .build();
         billRepository.save(bill);
         kq.put("payment_id",bill.getId());
+        paymentService.checkPaymentAsync(bookingRoom, bill, newServiceId, servicePrice, note);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
@@ -425,6 +428,39 @@ public class IServiceHotelService implements ServiceHotelService {
                                 .build()
                 );
     }
+    @Async
+    protected void checkPaymentAsync(Booking booking, BookingRoom bookingRoom, Bill bill) throws Exception {
+        long startTime = System.currentTimeMillis();
+        boolean isPaid = false;
+
+        while (System.currentTimeMillis() - startTime < 15 * 60 * 1000) { // Chạy trong 15 phút
+            Map<String, Object> paymentStatus = zaloPayService.getStatusByApptransid(bill.getTransId());
+
+            if ((Integer) paymentStatus.get("returncode") == 1) { // Nếu thanh toán thành công
+                bill.setStatus("SUCCESS");
+                billRepository.save(bill);
+
+                bookingRepository.save(booking);
+                bookingRoomRepository.save(bookingRoom);
+
+                isPaid = true;
+                break; // Dừng kiểm tra ngay khi thanh toán thành công
+            }
+
+            try {
+                Thread.sleep(120000); // Chờ 2 phút trước khi kiểm tra lại
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        if (!isPaid) {
+            bill.setStatus("CANCELED");
+            billRepository.save(bill);
+        }
+    }
+
 
     @Override
     public ResponseEntity<?> checkBookingRoomStatus(int paymentId, String transId) throws Exception {
