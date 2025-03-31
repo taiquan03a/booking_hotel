@@ -170,6 +170,7 @@ public class IServiceHotelService implements ServiceHotelService {
                 List<ServiceDto> serviceDtoList = new ArrayList<>();
                 for(ServiceHotel serviceHotel: serviceHotelRepository.findServiceHotelsByCategoryAndActive(category,true)){
                     ServiceDto serviceDto = ServiceDto.builder()
+                            .id(serviceHotel.getId())
                             .name(serviceHotel.getName())
                             .description(serviceHotel.getDescription())
                             .image(serviceHotel.getImage())
@@ -199,6 +200,7 @@ public class IServiceHotelService implements ServiceHotelService {
                         .findAll()
                         .stream()
                         .map(roomServiceModel -> ServiceDto.builder()
+                                .id(roomServiceModel.getId())
                                 .name(roomServiceModel.getName())
                                 .description(roomServiceModel.getDescription())
                                 .image(roomServiceModel.getIcon())

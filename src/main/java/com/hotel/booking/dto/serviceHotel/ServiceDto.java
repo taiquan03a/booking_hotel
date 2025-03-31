@@ -12,6 +12,7 @@ import java.time.LocalTime;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ServiceDto {
+    private int id;
     private String name;
     private String location;
     private String capacity;
