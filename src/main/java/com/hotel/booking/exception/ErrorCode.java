@@ -19,6 +19,8 @@ public enum ErrorCode {
     NOT_FOUND(404, "Not found", HttpStatus.NOT_FOUND),
     BOOKING_ROOM_NOT_FOUND(405, "Booking room not found", HttpStatus.NOT_FOUND),
     SERVICE_NOT_FOUND(406, "Service not found", HttpStatus.NOT_FOUND),
+    BOOKING_NOT_FOUND(407, "Booking not found", HttpStatus.NOT_FOUND),
+    SEVICE_NOT_FOUND(408, "Service not found", HttpStatus.NOT_FOUND),
     ;
 
     ErrorCode(int code, String message, HttpStatusCode statusCode) {

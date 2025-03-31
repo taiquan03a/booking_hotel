@@ -83,6 +83,7 @@ public class IZaloPayService implements ZaloPayService {
         kq.put("orderurl", result.get("orderurl"));
         kq.put("returncode", result.get("returncode"));
         kq.put("zptranstoken", result.get("zptranstoken"));
+        kq.put("booking_id",order_id);
         return kq;
     }
 

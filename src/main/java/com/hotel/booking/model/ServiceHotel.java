@@ -1,6 +1,7 @@
 package com.hotel.booking.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -9,6 +10,8 @@ import org.hibernate.annotations.Nationalized;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -78,5 +81,12 @@ public class ServiceHotel {
     @Nationalized
     @Column(name = "update_by")
     private String updateBy;
+
+    @Column(name = "price")
+    private Integer price;
+
+    @OneToMany(mappedBy = "serviceHotel")
+    @JsonIgnore
+    private Set<UserServiceHotel> userServiceHotels = new LinkedHashSet<>();
 
 }

@@ -2,18 +2,15 @@ package com.hotel.booking.service.Impl;
 
 import com.hotel.booking.dto.ApiResponse;
 import com.hotel.booking.dto.category.CategoryDto;
-import com.hotel.booking.dto.serviceHotel.CreateServiceHotel;
-import com.hotel.booking.dto.serviceHotel.ServiceDto;
-import com.hotel.booking.dto.serviceHotel.UpdateServiceHotel;
+import com.hotel.booking.dto.serviceHotel.*;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
-import com.hotel.booking.model.ServiceCategory;
-import com.hotel.booking.model.ServiceHotel;
-import com.hotel.booking.model.User;
-import com.hotel.booking.repository.CategoryRepository;
-import com.hotel.booking.repository.ServiceHotelRepository;
+import com.hotel.booking.model.*;
+import com.hotel.booking.model.Enum.BookingStatusEnum;
+import com.hotel.booking.repository.*;
 import com.hotel.booking.service.CloudinaryService;
 import com.hotel.booking.service.ServiceHotelService;
+import com.hotel.booking.service.ZaloPayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,15 +19,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class IServiceHotelService implements ServiceHotelService {
     final private ServiceHotelRepository serviceHotelRepository;
     final private CloudinaryService cloudinaryService;
     final private CategoryRepository categoryRepository;
+    final private RoomServiceModelRepository roomServiceModelRepository;
+    final private UserServiceHotelRepository userServiceHotelRepository;
+    final private ZaloPayService zaloPayService;
+    private final RoomRepository roomRepository;
+    private final BookingRoomRepository bookingRoomRepository;
+    private final BookingRepository bookingRepository;
+    private final ServiceRoomRepository serviceRoomRepository;
+    private final BillRepository billRepository;
 
     @Override
     public ResponseEntity<?> addServiceHotel(CreateServiceHotel serviceHotel, Principal principal) {
@@ -169,6 +177,7 @@ public class IServiceHotelService implements ServiceHotelService {
                             .startTime(serviceHotel.getOpenTime())
                             .capacity(serviceHotel.getCapacity())
                             .location(serviceHotel.getLocation())
+                            .price(serviceHotel.getPrice())
                             .build();
                     serviceDtoList.add(serviceDto);
                 }
@@ -180,7 +189,23 @@ public class IServiceHotelService implements ServiceHotelService {
                         .build();
                 categoryDtoList.add(categoryDto);
             }
+
         }
+        CategoryDto categoryServiceRoom = CategoryDto.builder()
+                .id(3)
+                .name("Dịch vụ khác")
+                .description("Các dịch vụ phòng khách sạn")
+                .serviceHotelList(roomServiceModelRepository
+                        .findAll()
+                        .stream()
+                        .map(roomServiceModel -> ServiceDto.builder()
+                                .name(roomServiceModel.getName())
+                                .description(roomServiceModel.getDescription())
+                                .image(roomServiceModel.getIcon())
+                                .build())
+                        .toList())
+                .build();
+        categoryDtoList.add(categoryServiceRoom);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
@@ -188,6 +213,247 @@ public class IServiceHotelService implements ServiceHotelService {
                                 .statusCode(HttpStatus.OK.value())
                                 .message("Successfully get service hotels by category")
                                 .data(categoryDtoList)
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> serviceHotelById(Long id) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<?> bookingServiceHotel(BookingServiceHotel bookingServiceHotel, Principal principal) throws Exception {
+        var user = (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+        ServiceHotel serviceHotel = serviceHotelRepository
+                .findById(
+                        bookingServiceHotel
+                                .getServiceHotelId()
+                ).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
+        UserServiceHotel userServiceHotel = UserServiceHotel.builder()
+                .user(user)
+                .serviceHotel(serviceHotel)
+                .note(bookingServiceHotel.getNote())
+                .status("PROCESSING")
+                .build();
+        userServiceHotelRepository.save(userServiceHotel);
+        Map<String,Object> kq = zaloPayService.createPayment(
+                "booking service hotel",
+                Long.valueOf(serviceHotel.getPrice()),
+                Long.valueOf(userServiceHotel.getId())
+        );
+        kq.put("payment_id",userServiceHotel.getId());
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(HttpStatus.OK.value())
+                                .message("Successfully booking")
+                                .data(kq)
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> checkBookingStatus(Long bookingId, String transId) throws Exception {
+        UserServiceHotel userServiceHotel = userServiceHotelRepository.findById(bookingId).orElseThrow(()->new AppException(ErrorCode.NOT_FOUND));
+        Map<String,Object> kq = zaloPayService.getStatusByApptransid(transId);
+        if(kq.get("returncode") != null && (Integer) kq.get("returncode") != 1){
+            userServiceHotel.setStatus("FAIL");
+            userServiceHotelRepository.save(userServiceHotel);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(
+                            ApiResponse.builder()
+                                    .statusCode(400)
+                                    .message("PAYMENT_FAIL")
+                                    .description("Thanh toán thất bại.")
+                                    .data(userServiceHotel)
+                                    .build()
+                    );
+        }
+        userServiceHotel.setStatus("SUCCESS");
+        userServiceHotelRepository.save(userServiceHotel);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(200)
+                                .message("PAYMENT_SUCCESS")
+                                .description("Thanh toán thành công.")
+                                .data(userServiceHotel)
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> serviceRoomDetail(int serviceRoomId, Principal principal) {
+        var user = (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+        List<BookingRoom> bookingRoomList = roomRepository.findRoomIdsByUserIdAndServiceId(user,serviceRoomId);
+        if(bookingRoomList.isEmpty()){
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(
+                            ApiResponse.builder()
+                                    .statusCode(400)
+                                    .message("SERVICE_ROOM-DETAIL_SUCCESS")
+                                    .description("Bạn chưa đặt phòng nào có thể sử dụng dịch vụ này. Vui lòng đặt mới")
+                                    .build()
+                    );
+        }
+        List<BookedServiceRoom> bookedServiceRoomList = new ArrayList<>();
+        RoomServiceModel roomServiceModel = roomServiceModelRepository
+                .findById(serviceRoomId)
+                .orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
+
+        for (BookingRoom bookingRoom : bookingRoomList) {
+            Room room = roomRepository.findRoomDetailById(bookingRoom.getRoomDetail().getId());
+            ServiceRoom serviceRoom = serviceRoomRepository
+                    .findByRoomAndService(room, roomServiceModel);
+
+            BookedServiceRoom bookedServiceRoom = BookedServiceRoom.builder()
+                    .bookingRoomId(bookingRoom.getId())
+                    .roomName(room.getName())
+                    .adult(bookingRoom.getSumAdult())
+                    .child(bookingRoom.getSumChildren())
+                    .checkInTime(bookingRoom.getCheckin())
+                    .checkOutTime(bookingRoom.getCheckout())
+                    .priceService(serviceRoom.getPrice())
+                    .build();
+            bookedServiceRoomList.add(bookedServiceRoom);
+        }
+
+        ServiceRoomDetail serviceRoomDetail = ServiceRoomDetail.builder()
+                .serviceRoomId(serviceRoomId)
+                .serviceRoomDescription(roomServiceModel.getDescription())
+                .serviceRoomName(roomServiceModel.getName())
+                .customerName(user.getUsername())
+                .bookedServiceRoomList(bookedServiceRoomList)
+                .build();
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(200)
+                                .message("SERVICE_ROOM_DETAIL_SUCCESS")
+                                .description("Hiển thị danh sách phòng có thể chọn thành công.")
+                                .data(serviceRoomDetail)
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> bookingServiceRoom(BookingServiceRoom bookingServiceRoom, Principal principal) throws Exception {
+        var user = (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+        BookingRoom bookingRoom = bookingRoomRepository.findById(bookingServiceRoom.getBookingId())
+                .orElseThrow(()->new AppException(ErrorCode.BOOKING_ROOM_NOT_FOUND));
+        RoomServiceModel roomServiceModel = roomServiceModelRepository.
+                findById(bookingServiceRoom.getServiceRoomId())
+                .orElseThrow(()->new AppException(ErrorCode.SERVICE_NOT_FOUND));
+        Room room = roomRepository.findRoomDetailById(bookingRoom.getRoomDetail().getId());
+        ServiceRoom serviceRoom = serviceRoomRepository.findByRoomAndService(room, roomServiceModel);
+        if(!bookingRoom.getServiceId().equals("0")) {
+            if(bookingRoom.getServiceId().length() > 1){
+                String[] bookedServiceId = bookingRoom.getServiceId().split(",");
+                for(String s : bookedServiceId){
+                    if(s.equals(String.valueOf(bookingServiceRoom.getServiceRoomId()))){
+                        return ResponseEntity
+                                .status(HttpStatus.BAD_REQUEST)
+                                .body(
+                                        ApiResponse.builder()
+                                                .statusCode(403)
+                                                .message("SERVICE_ROOM_BOOKED_FAIL")
+                                                .description("Dich vụ này đã có trong phòng của bạn rồi.")
+                                                .build()
+                                );
+                    }
+                }
+
+            } else{
+                if(String.valueOf(bookingServiceRoom.getServiceRoomId()).equals(bookingRoom.getServiceId())){
+                    return ResponseEntity
+                            .status(HttpStatus.BAD_REQUEST)
+                            .body(
+                                    ApiResponse.builder()
+                                            .statusCode(403)
+                                            .message("SERVICE_ROOM_BOOKED_FAIL")
+                                            .description("Dich vụ này đã có trong phòng của bạn rồi.")
+                                            .build()
+                            );
+                }
+            }
+            String newServiceId = bookingRoom.getServiceId() + ","+String.valueOf(bookingServiceRoom.getServiceRoomId());
+            bookingRoom.setServiceId(newServiceId);
+
+        }else{
+            bookingRoom.setServiceId(String.valueOf(bookingServiceRoom.getServiceRoomId()));
+        }
+        int newPrice = bookingRoom.getPrice() + serviceRoom.getPrice();
+        int oldPrice = bookingRoom.getPrice();
+        bookingRoom.setPrice(newPrice);
+        Booking booking = bookingRoom.getBooking();
+        int newSumPrice = booking.getSumPrice() - oldPrice + newPrice;
+        booking.setSumPrice(newSumPrice);
+        booking.setNote(booking.getNote() + "/" + bookingServiceRoom.getNote());
+        bookingRepository.save(booking);
+        bookingRoomRepository.save(bookingRoom);
+        Map<String,Object> kq = zaloPayService.createPayment(
+                "booking service room",
+                Long.valueOf(serviceRoom.getPrice()),
+                Long.valueOf(booking.getId())
+        );
+        Bill bill = Bill.builder()
+                .booking(booking)
+                .paymentDate(String.valueOf(serviceRoom.getId()))
+                .paymentAmount(String.valueOf(serviceRoom.getPrice()))
+                .note("SERVICE_ROOM")
+                .status("SERVICE_PROCESSING")
+                .createAt(LocalDateTime.now())
+                .transId(kq.get("apptransid").toString())
+                .build();
+        billRepository.save(bill);
+        kq.put("payment_id",bill.getId());
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(403)
+                                .message("SERVICE_ROOM_BOOKED_SUCCESS")
+                                .description("Đặt dịnh vụ thành công")
+                                .data(kq)
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> checkBookingRoomStatus(int paymentId, String transId) throws Exception {
+
+        Map<String,Object> kq = zaloPayService.getStatusByApptransid(transId);
+        Bill bill = billRepository.findById(paymentId).get();
+        if(kq.get("returncode") != null && (Integer) kq.get("returncode") != 1){
+
+            bill.setStatus("CANCELED");
+            billRepository.save(bill);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(
+                            ApiResponse.builder()
+                                    .statusCode(400)
+                                    .message("PAYMENT_FAIL")
+                                    .description("Thanh toán thất bại.")
+                                    .build()
+                    );
+        }
+        bill.setStatus("SUCCESS");
+        billRepository.save(bill);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(200)
+                                .message("PAYMENT_SUCCESS")
+                                .description("Thanh toán thành công.")
                                 .build()
                 );
     }
