@@ -415,10 +415,10 @@ public class IServiceHotelService implements ServiceHotelService {
         billRepository.save(bill);
         kq.put("payment_id",bill.getId());
         return ResponseEntity
-                .status(HttpStatus.BAD_REQUEST)
+                .status(HttpStatus.OK)
                 .body(
                         ApiResponse.builder()
-                                .statusCode(403)
+                                .statusCode(200)
                                 .message("SERVICE_ROOM_BOOKED_SUCCESS")
                                 .description("Đặt dịnh vụ thành công")
                                 .data(kq)
@@ -456,5 +456,10 @@ public class IServiceHotelService implements ServiceHotelService {
                                 .description("Thanh toán thành công.")
                                 .build()
                 );
+    }
+
+    @Override
+    public void checkPaymentsAsync(Booking booking, BookingRoom bookingRoom, Bill bill) {
+        
     }
 }

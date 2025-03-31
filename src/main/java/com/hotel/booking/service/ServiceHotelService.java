@@ -4,6 +4,9 @@ import com.hotel.booking.dto.serviceHotel.BookingServiceHotel;
 import com.hotel.booking.dto.serviceHotel.BookingServiceRoom;
 import com.hotel.booking.dto.serviceHotel.CreateServiceHotel;
 import com.hotel.booking.dto.serviceHotel.UpdateServiceHotel;
+import com.hotel.booking.model.Bill;
+import com.hotel.booking.model.Booking;
+import com.hotel.booking.model.BookingRoom;
 import com.hotel.booking.model.ServiceHotel;
 import org.springframework.http.ResponseEntity;
 
@@ -23,4 +26,5 @@ public interface ServiceHotelService {
     ResponseEntity<?> serviceRoomDetail(int serviceRoomId,Principal principal);
     ResponseEntity<?> bookingServiceRoom(BookingServiceRoom bookingServiceRoom, Principal principal) throws Exception;
     ResponseEntity<?> checkBookingRoomStatus(int paymentId,String transId) throws Exception;
+    void checkPaymentsAsync(Booking booking, BookingRoom bookingRoom, Bill bill);
 }
