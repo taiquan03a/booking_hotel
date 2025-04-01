@@ -117,7 +117,8 @@ public class IServiceHotelService implements ServiceHotelService {
     @Override
     public ResponseEntity<?> deleteServiceHotel(Integer id) {
         ServiceHotel serviceHotel = serviceHotelRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
-        serviceHotel.setActive(!serviceHotel.getActive());
+        boolean status = !serviceHotel.getActive();
+        serviceHotel.setActive(status);
         serviceHotelRepository.save(serviceHotel);
         return ResponseEntity
                 .status(HttpStatus.OK)

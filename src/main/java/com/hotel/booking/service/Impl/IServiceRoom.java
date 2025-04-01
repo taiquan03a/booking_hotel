@@ -100,6 +100,7 @@ public class IServiceRoom implements ServiceRoom {
                 .findById(id)
                 .orElseThrow(()->new AppException(ErrorCode.NOT_FOUND));
         roomServiceModel.setActive(!roomServiceModel.getActive());
+        roomServiceModelRepository.save(roomServiceModel);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
