@@ -44,6 +44,9 @@ public class Bill {
     @Column(name = "status")
     private String status;
 
+    @Column(name = "type")
+    private String type;
+
     @Column(name = "create_at")
     private LocalDateTime createAt;
 

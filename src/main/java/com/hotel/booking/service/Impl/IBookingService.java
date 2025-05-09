@@ -9,10 +9,12 @@ import com.hotel.booking.dto.roomService.RoomServiceResponse;
 import com.hotel.booking.dto.roomService.ServiceRoomSelect;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
+import com.hotel.booking.exception.ErrorResponse;
 import com.hotel.booking.mapping.PolicyMapper;
 import com.hotel.booking.mapping.RoomServiceMapper;
 import com.hotel.booking.model.*;
 import com.hotel.booking.model.Enum.BookingStatusEnum;
+import com.hotel.booking.model.Enum.PaymentType;
 import com.hotel.booking.model.Enum.PolicyTypeEnum;
 import com.hotel.booking.repository.*;
 import com.hotel.booking.service.BookingService;
@@ -33,6 +35,7 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.HashMap;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -784,21 +787,35 @@ public class IBookingService implements BookingService {
             error.put("description","Không có phòng trong giỏ.");
             return error;
         }
+
         Booking booking = bookingOptional.get();
         booking.setStatus(String.valueOf(BookingStatusEnum.BOOKED));
-        booking.setCreateBy(user.getEmail());
+        booking.setCreateBy(user != null ? user.getEmail() : null);
         booking.setCreateAt(LocalDateTime.now());
-        booking.getBookingRooms().forEach(
-                bookingRoom -> bookingRoom.setStatus(String.valueOf(BookingStatusEnum.BOOKED))
-        );
+        AtomicInteger depositPrice = new AtomicInteger(0);
+
+        booking.getBookingRooms().forEach(bookingRoom -> {
+            bookingRoom.setStatus(String.valueOf(BookingStatusEnum.BOOKED));
+            String paymentPolicy = bookingRoom.getRoomDetail().getRoom().getPolicies().stream()
+                    .filter(policy -> policy.getType().getType().equals(PolicyTypeEnum.PAYMENT.name()))
+                    .map(Policy::getContent)
+                    .findFirst()
+                    .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+
+            float payment = Float.parseFloat(paymentPolicy.replaceAll("%", "")) / 100f;
+            depositPrice.addAndGet(Math.round(bookingRoom.getPrice() * payment));
+        });
+
+        int finalDeposit = depositPrice.get();
         bookingRepository.save(booking);
-        Map<String,Object> kq = zaloPayService.createPayment("booking",Long.valueOf(booking.getSumPrice()), Long.valueOf(booking.getId()));
+        Map<String,Object> kq = zaloPayService.createPayment("booking", (long) finalDeposit, Long.valueOf(booking.getId()));
         Bill bill = Bill.builder()
                 .booking(booking)
-                .paymentAmount(String.valueOf(booking.getSumPrice()))
+                .paymentAmount(String.valueOf(finalDeposit))
                 .status("PROCESSING")
                 .transId(kq.get("apptransid").toString())
                 .createAt(LocalDateTime.now())
+                .type(PaymentType.DEPOSIT.name())
                 .build();
         billRepository.save(bill);
         kq.put("paymentId",bill.getId());
@@ -897,6 +914,91 @@ public class IBookingService implements BookingService {
                                 .data(bill)
                                 .build()
                 );
+    }
+
+    @Override
+    public Map<String,Object> checkIn(Integer bookingId, Principal principal) throws Exception {
+        var user = (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+        if(user == null){
+            Map<String, Object> res = new HashMap<>();
+            res.put("statusCode", HttpStatus.UNAUTHORIZED.value());
+            res.put("message","Vui lòng đăng nhập để sử dụng chức năng này.");
+            res.put("timestamp", new Date(System.currentTimeMillis()));
+            return res;
+        }
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+        BookingRoom checkDate = booking.getBookingRooms().stream()
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_ROOM_NOT_FOUND));
+
+        if(LocalDateTime.now().isBefore(checkDate.getCheckin())){
+            Map<String, Object> res = new HashMap<>();
+            res.put("statusCode", 409);
+            res.put("message","Chưa đến giờ check in xin vui lòng quay lại sau.");
+            res.put("timestamp", new Date(System.currentTimeMillis()));
+            return res;
+        }
+        booking.setStatus(BookingStatusEnum.CHECKED_IN.name());
+
+        Bill payment = billRepository.findBillByBookingAndType(booking,PaymentType.DEPOSIT.name());
+
+        long remainingPrice = booking.getSumPrice() - Integer.parseInt(payment.getPaymentAmount());
+        if(remainingPrice == 0){
+            bookingRepository.save(booking);
+            Map<String, Object> res = new HashMap<>();
+            res.put("statusCode", 200);
+            res.put("message","Check in thành công.");
+            res.put("timestamp", new Date(System.currentTimeMillis()));
+            return res;
+        }
+
+
+        Map<String,Object> kq = zaloPayService.createPayment("remaning payment",remainingPrice, Long.valueOf(booking.getId()));
+        Bill bill = Bill.builder()
+                .booking(booking)
+                .paymentAmount(String.valueOf(booking.getSumPrice()))
+                .status("PROCESSING")
+                .transId(kq.get("apptransid").toString())
+                .createAt(LocalDateTime.now())
+                .type(PaymentType.REMAINING.name())
+                .build();
+        billRepository.save(bill);
+        kq.put("paymentId",bill.getId());
+        return kq;
+    }
+
+    @Override
+    public ResponseEntity<?> checkOut(Integer bookingId, Principal principal) {
+        var user = (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+        if(user == null){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                    ApiResponse.builder()
+                            .statusCode(401)
+                            .message("Vui lòng đăng nhập để sử dụng chức năng này.")
+                            .build()
+            );
+        }
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+        BookingRoom checkDate = booking.getBookingRooms().stream()
+                .findFirst()
+                .orElseThrow(() -> new AppException(ErrorCode.BOOKING_ROOM_NOT_FOUND));
+        booking.setStatus(BookingStatusEnum.CHECKED_OUT.name());
+        bookingRepository.save(booking);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .statusCode(200)
+                        .message("Trả phòng thành công.")
+                        .build()
+        );
+    }
+
+    @Override
+    public ResponseEntity<?> cancelBooking(Integer BookingId, Principal principal) {
+        return null;
     }
 
     private CartDetailResponse getBillDetail(Booking booking) {

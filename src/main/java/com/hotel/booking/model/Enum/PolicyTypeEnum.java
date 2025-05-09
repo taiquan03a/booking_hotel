@@ -7,5 +7,6 @@ public enum PolicyTypeEnum {
     CHECKOUT,
     ADULT,
     CHILD,
+    PAYMENT_METHOD,
     OTHER
 }

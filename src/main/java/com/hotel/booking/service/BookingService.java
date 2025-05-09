@@ -22,4 +22,9 @@ public interface BookingService {
     Map<String, Object> userPayment(Principal principal) throws Exception;
     ResponseEntity<?> dashBoard(String type,Principal connectedUser);
     ResponseEntity<?> sendFeedback(CreateFeedback createFeedback, Principal principal);
+
+    //status booking
+    Map<String, Object> checkIn(Integer bookingId,Principal principal) throws Exception;
+    ResponseEntity<?> checkOut(Integer bookingId,Principal principal);
+    ResponseEntity<?> cancelBooking(Integer bookingId,Principal principal);
 }

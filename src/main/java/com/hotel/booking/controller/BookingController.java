@@ -61,4 +61,14 @@ public class BookingController {
     public ResponseEntity<?> feedback(@RequestBody CreateFeedback feedback, Principal principal) {
         return bookingService.sendFeedback(feedback,principal);
     }
+
+    @GetMapping("checkin/{bookingId}")
+    public Map<String, Object> checkin(@PathVariable int bookingId, Principal principal) throws Exception {
+        return bookingService.checkIn(bookingId,principal);
+    }
+
+    @GetMapping("checkout/{bookingId}")
+    public ResponseEntity<?> checkout(@PathVariable int bookingId, Principal principal){
+        return bookingService.checkOut(bookingId,principal);
+    }
 }
