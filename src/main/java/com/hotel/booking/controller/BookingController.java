@@ -68,7 +68,7 @@ public class BookingController {
     }
 
     @GetMapping("checkout/{bookingId}")
-    public Map<String, Object> checkout(@PathVariable int bookingId, Principal principal){
+    public Map<String, Object> checkout(@PathVariable int bookingId, Principal principal) throws Exception {
         return bookingService.checkOut(bookingId,principal);
     }
 }
