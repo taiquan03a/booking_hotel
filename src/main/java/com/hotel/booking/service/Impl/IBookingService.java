@@ -929,6 +929,14 @@ public class IBookingService implements BookingService {
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+
+        if(!booking.getStatus().equals(BookingStatusEnum.CHECKED_IN.name())){
+            Map<String, Object> res = new HashMap<>();
+            res.put("statusCode", 408);
+            res.put("message","Trạng thái của bạn không phải CHECKIN. Vui lòng kiểm tra lại để thực hiện CHEKOUT!!!");
+            res.put("timestamp", new Date(System.currentTimeMillis()));
+            return res;
+        }
         BookingRoom checkDate = booking.getBookingRooms().stream()
                 .findFirst()
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_ROOM_NOT_FOUND));
@@ -977,6 +985,15 @@ public class IBookingService implements BookingService {
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
+        if(!booking.getStatus().equals(BookingStatusEnum.BOOKED.name())){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                    ApiResponse.builder()
+                            .statusCode(408)
+                            .message("Trạng thái đơn đặt của bạn không phải là BOOKED để check in. Vui lòng kiểm tra lại!!")
+                            .timestamp(new Date(System.currentTimeMillis()))
+                            .build()
+            );
+        }
         BookingRoom checkDate = booking.getBookingRooms().stream()
                 .findFirst()
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_ROOM_NOT_FOUND));
