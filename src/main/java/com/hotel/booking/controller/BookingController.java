@@ -63,12 +63,12 @@ public class BookingController {
     }
 
     @GetMapping("checkin/{bookingId}")
-    public Map<String, Object> checkin(@PathVariable int bookingId, Principal principal) throws Exception {
+    public ResponseEntity<?> checkin(@PathVariable int bookingId, Principal principal) throws Exception {
         return bookingService.checkIn(bookingId,principal);
     }
 
     @GetMapping("checkout/{bookingId}")
-    public ResponseEntity<?> checkout(@PathVariable int bookingId, Principal principal){
+    public Map<String, Object> checkout(@PathVariable int bookingId, Principal principal){
         return bookingService.checkOut(bookingId,principal);
     }
 }

@@ -24,7 +24,7 @@ public interface BookingService {
     ResponseEntity<?> sendFeedback(CreateFeedback createFeedback, Principal principal);
 
     //status booking
-    Map<String, Object> checkIn(Integer bookingId,Principal principal) throws Exception;
-    ResponseEntity<?> checkOut(Integer bookingId,Principal principal);
+    ResponseEntity<?> checkIn(Integer bookingId,Principal principal) throws Exception;
+    Map<String,Object> checkOut(Integer bookingId,Principal principal) throws Exception;
     ResponseEntity<?> cancelBooking(Integer bookingId,Principal principal);
 }

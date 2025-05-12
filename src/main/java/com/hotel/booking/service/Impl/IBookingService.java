@@ -917,7 +917,7 @@ public class IBookingService implements BookingService {
     }
 
     @Override
-    public Map<String,Object> checkIn(Integer bookingId, Principal principal) throws Exception {
+    public Map<String,Object> checkOut(Integer bookingId, Principal principal) throws Exception {
         var user = (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
         if(user == null){
             Map<String, Object> res = new HashMap<>();
@@ -932,15 +932,7 @@ public class IBookingService implements BookingService {
         BookingRoom checkDate = booking.getBookingRooms().stream()
                 .findFirst()
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_ROOM_NOT_FOUND));
-
-        if(LocalDateTime.now().isBefore(checkDate.getCheckin())){
-            Map<String, Object> res = new HashMap<>();
-            res.put("statusCode", 409);
-            res.put("message","Chưa đến giờ check in xin vui lòng quay lại sau.");
-            res.put("timestamp", new Date(System.currentTimeMillis()));
-            return res;
-        }
-        booking.setStatus(BookingStatusEnum.CHECKED_IN.name());
+        booking.setStatus(BookingStatusEnum.CHECKED_OUT.name());
 
         Bill payment = billRepository.findBillByBookingAndType(booking,PaymentType.DEPOSIT.name());
 
@@ -970,23 +962,35 @@ public class IBookingService implements BookingService {
     }
 
     @Override
-    public ResponseEntity<?> checkOut(Integer bookingId, Principal principal) {
+    public ResponseEntity<?> checkIn(Integer bookingId, Principal principal) {
         var user = (User) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
         if(user == null){
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
                     ApiResponse.builder()
                             .statusCode(401)
                             .message("Vui lòng đăng nhập để sử dụng chức năng này.")
+                            .timestamp(new Date(System.currentTimeMillis()))
                             .build()
             );
         }
+
 
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_NOT_FOUND));
         BookingRoom checkDate = booking.getBookingRooms().stream()
                 .findFirst()
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_ROOM_NOT_FOUND));
-        booking.setStatus(BookingStatusEnum.CHECKED_OUT.name());
+
+        if(LocalDateTime.now().isBefore(checkDate.getCheckin())){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(
+                    ApiResponse.builder()
+                            .statusCode(409)
+                            .message("Chưa đến giờ check in xin vui lòng quay lại sau.")
+                            .timestamp(new Date(System.currentTimeMillis()))
+                            .build()
+            );
+        }
+        booking.setStatus(BookingStatusEnum.CHECKED_IN.name());
         bookingRepository.save(booking);
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
