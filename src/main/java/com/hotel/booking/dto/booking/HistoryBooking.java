@@ -14,6 +14,8 @@ import java.util.List;
 public class HistoryBooking {
     private int bookingId;
     private String paymentStatus;
+    private int depositPrice;
+    private int remainingPrice;
     private int totalRoomPrice;
     private int totalPolicyPrice;
     private int totalBookingPrice;

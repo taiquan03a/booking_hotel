@@ -548,14 +548,12 @@ public class IBookingService implements BookingService {
                 totalRoomPrice += bookingCarted.getRoomPrice();
                 totalBookingPrice += bookingCarted.getTotalPrice();
             }
-            Bill bill = new Bill();
-            for(Bill it : billRepository.findBillByBooking(booking)){
-                if(it.getPaymentDate() == null){
-                    bill = it;
-                    break;
-                }
-            }
-            String note = (bill != null) ? bill.getNote() : null;
+            List<Bill> billList = billRepository.findBillByBooking(booking).stream()
+                    .filter(bill1 -> PaymentType.DEPOSIT.name().equals(bill1.getType())
+                            || PaymentType.REMAINING.name().equals(bill1.getType()))
+                    .toList();
+
+            String note = billList.get(0).getNote();
 
             HistoryBooking historyBooking = HistoryBooking.builder()
                     .bookingId(booking.getId())
@@ -564,6 +562,18 @@ public class IBookingService implements BookingService {
                     .bookingDate(booking.getCreateAt())
                     .feedback(note)
                     .totalRoomBooking(booking.getBookingRooms().size())
+                    .depositPrice(Integer.parseInt(Objects.requireNonNull(billList.stream()
+                                    .filter(bill -> bill.getType().equals(PaymentType.DEPOSIT.name()))
+                                    .findFirst()
+                                    .orElse(null))
+                            .getPaymentAmount())
+                    )
+                    .remainingPrice(Integer.parseInt(Objects.requireNonNull(billList.stream()
+                                    .filter(bill -> bill.getType().equals(PaymentType.REMAINING.name()))
+                                    .findFirst()
+                                    .orElse(null))
+                            .getPaymentAmount())
+                    )
                     .totalRoomPrice(totalRoomPrice)
                     .totalBookingPrice(totalBookingPrice)
                     .totalPolicyPrice(totalPolicyPrice)
@@ -650,19 +660,36 @@ public class IBookingService implements BookingService {
 //                    .filter(bill1 -> bill1.getPaymentDate() == null)
 //                    .findFirst()
 //                    .orElseThrow(()->new AppException(ErrorCode.NOT_FOUND));
-            Bill bill = new Bill();
-            for(Bill it : billRepository.findBillByBooking(booking)){
-                if(it.getPaymentDate() == null){
-                    bill = it;
-                    break;
-                }
-            }
-            String note = (bill != null) ? bill.getNote() : null;
+//            Bill bill = new Bill();
+//            for(Bill it : billRepository.findBillByBooking(booking)){
+//                if(it.getPaymentDate() == null){
+//                    bill = it;
+//                    break;
+//                }
+//            }
+            List<Bill> billList = billRepository.findBillByBooking(booking).stream()
+                    .filter(bill1 -> PaymentType.DEPOSIT.name().equals(bill1.getType())
+                            || PaymentType.REMAINING.name().equals(bill1.getType()))
+                    .toList();
+
+            String note = billList.get(0).getNote();
             HistoryBooking historyBooking = HistoryBooking.builder()
                     .bookingId(booking.getId())
                     .paymentStatus(booking.getStatus())
                     .bookingDate(booking.getCreateAt())
                     .feedback(note)
+                    .depositPrice(Integer.parseInt(Objects.requireNonNull(billList.stream()
+                                    .filter(bill -> bill.getType().equals(PaymentType.DEPOSIT.name()))
+                                    .findFirst()
+                                    .orElse(null))
+                            .getPaymentAmount())
+                    )
+                    .remainingPrice(Integer.parseInt(Objects.requireNonNull(billList.stream()
+                                    .filter(bill -> bill.getType().equals(PaymentType.REMAINING.name()))
+                                    .findFirst()
+                                    .orElse(null))
+                            .getPaymentAmount())
+                    )
                     .totalRoomBooking(booking.getBookingRooms().size())
                     .totalRoomPrice(totalRoomPrice)
                     .totalBookingPrice(totalBookingPrice)
@@ -807,6 +834,7 @@ public class IBookingService implements BookingService {
         });
 
         int finalDeposit = depositPrice.get();
+        System.out.println("finalDeposit: " + finalDeposit);
         bookingRepository.save(booking);
         Map<String,Object> kq = zaloPayService.createPayment("booking", (long) finalDeposit, Long.valueOf(booking.getId()));
         Bill bill = Bill.builder()
