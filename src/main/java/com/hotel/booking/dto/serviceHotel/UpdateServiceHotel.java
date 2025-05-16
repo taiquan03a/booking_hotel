@@ -20,4 +20,5 @@ public class UpdateServiceHotel {
     private String description;
     private MultipartFile image;
     private Integer categoryId;
+    private Integer price;
 }

@@ -48,6 +48,7 @@ public class IServiceHotelService implements ServiceHotelService {
                 .location(serviceHotel.getLocation())
                 .capacity(serviceHotel.getCapacity())
                 .openTime(serviceHotel.getStartTime())
+                .price(serviceHotel.getPrice())
                 .closeTime(serviceHotel.getEndTime())
                 .description(serviceHotel.getDescription())
                 .active(true)
@@ -86,6 +87,7 @@ public class IServiceHotelService implements ServiceHotelService {
         service.setLocation(serviceHotel.getLocation());
         service.setCapacity(serviceHotel.getCapacity());
         service.setOpenTime(serviceHotel.getStartTime());
+        service.setPrice(serviceHotel.getPrice());
         service.setCloseTime(serviceHotel.getEndTime());
         service.setDescription(serviceHotel.getDescription());
         service.setCategory(categoryRepository.findById(serviceHotel.getCategoryId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND)));
