@@ -549,11 +549,28 @@ public class IBookingService implements BookingService {
                 totalBookingPrice += bookingCarted.getTotalPrice();
             }
             List<Bill> billList = billRepository.findBillByBooking(booking).stream()
-                    .filter(bill1 -> PaymentType.DEPOSIT.name().equals(bill1.getType())
-                            || PaymentType.REMAINING.name().equals(bill1.getType()))
+                    .filter(bill -> PaymentType.DEPOSIT.name().equals(bill.getType())
+                            || PaymentType.REMAINING.name().equals(bill.getType()))
                     .toList();
 
-            String note = billList.get(0).getNote();
+            Bill depositBill = billList.stream()
+                    .filter(bill -> PaymentType.DEPOSIT.name().equals(bill.getType()))
+                    .findFirst()
+                    .orElse(null);
+
+            Bill remainingBill = billList.stream()
+                    .filter(bill -> PaymentType.REMAINING.name().equals(bill.getType()))
+                    .findFirst()
+                    .orElse(null);
+
+            // Trích xuất thông tin thanh toán nếu bill không null
+            String note = depositBill != null ? depositBill.getNote() : null;
+            Integer depositPrice = (depositBill != null && depositBill.getPaymentAmount() != null)
+                    ? Integer.parseInt(depositBill.getPaymentAmount())
+                    : null;
+            Integer remainingPrice = (remainingBill != null && remainingBill.getPaymentAmount() != null)
+                    ? Integer.parseInt(remainingBill.getPaymentAmount())
+                    : null;
 
             HistoryBooking historyBooking = HistoryBooking.builder()
                     .bookingId(booking.getId())
@@ -562,18 +579,8 @@ public class IBookingService implements BookingService {
                     .bookingDate(booking.getCreateAt())
                     .feedback(note)
                     .totalRoomBooking(booking.getBookingRooms().size())
-                    .depositPrice(Integer.parseInt(Objects.requireNonNull(billList.stream()
-                                    .filter(bill -> bill.getType().equals(PaymentType.DEPOSIT.name()))
-                                    .findFirst()
-                                    .orElse(null))
-                            .getPaymentAmount())
-                    )
-                    .remainingPrice(Integer.parseInt(Objects.requireNonNull(billList.stream()
-                                    .filter(bill -> bill.getType().equals(PaymentType.REMAINING.name()))
-                                    .findFirst()
-                                    .orElse(null))
-                            .getPaymentAmount())
-                    )
+                    .depositPrice(String.valueOf(depositPrice))
+                    .remainingPrice(String.valueOf(remainingPrice))
                     .totalRoomPrice(totalRoomPrice)
                     .totalBookingPrice(totalBookingPrice)
                     .totalPolicyPrice(totalPolicyPrice)
@@ -668,35 +675,45 @@ public class IBookingService implements BookingService {
 //                }
 //            }
             List<Bill> billList = billRepository.findBillByBooking(booking).stream()
-                    .filter(bill1 -> PaymentType.DEPOSIT.name().equals(bill1.getType())
-                            || PaymentType.REMAINING.name().equals(bill1.getType()))
+                    .filter(bill -> PaymentType.DEPOSIT.name().equals(bill.getType())
+                            || PaymentType.REMAINING.name().equals(bill.getType()))
                     .toList();
 
-            String note = billList.get(0).getNote();
+            Bill depositBill = billList.stream()
+                    .filter(bill -> PaymentType.DEPOSIT.name().equals(bill.getType()))
+                    .findFirst()
+                    .orElse(null);
+
+            Bill remainingBill = billList.stream()
+                    .filter(bill -> PaymentType.REMAINING.name().equals(bill.getType()))
+                    .findFirst()
+                    .orElse(null);
+
+            // Trích xuất thông tin thanh toán nếu bill không null
+            String note = depositBill != null ? depositBill.getNote() : null;
+            Integer depositPrice = (depositBill != null && depositBill.getPaymentAmount() != null)
+                    ? Integer.parseInt(depositBill.getPaymentAmount())
+                    : null;
+            Integer remainingPrice = (remainingBill != null && remainingBill.getPaymentAmount() != null)
+                    ? Integer.parseInt(remainingBill.getPaymentAmount())
+                    : null;
+
             HistoryBooking historyBooking = HistoryBooking.builder()
                     .bookingId(booking.getId())
                     .paymentStatus(booking.getStatus())
                     .bookingDate(booking.getCreateAt())
                     .feedback(note)
-                    .depositPrice(Integer.parseInt(Objects.requireNonNull(billList.stream()
-                                    .filter(bill -> bill.getType().equals(PaymentType.DEPOSIT.name()))
-                                    .findFirst()
-                                    .orElse(null))
-                            .getPaymentAmount())
-                    )
-                    .remainingPrice(Integer.parseInt(Objects.requireNonNull(billList.stream()
-                                    .filter(bill -> bill.getType().equals(PaymentType.REMAINING.name()))
-                                    .findFirst()
-                                    .orElse(null))
-                            .getPaymentAmount())
-                    )
+                    .depositPrice(String.valueOf(depositPrice))
+                    .remainingPrice(String.valueOf(remainingPrice))
                     .totalRoomBooking(booking.getBookingRooms().size())
                     .totalRoomPrice(totalRoomPrice)
                     .totalBookingPrice(totalBookingPrice)
                     .totalPolicyPrice(totalPolicyPrice)
                     .bookingRoomDetails(bookingDetails)
                     .build();
+
             historyBookingList.add(historyBooking);
+
         }
 
         return ResponseEntity
