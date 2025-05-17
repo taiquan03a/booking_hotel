@@ -556,11 +556,13 @@ public class IBookingService implements BookingService {
 
             Bill depositBill = billList.stream()
                     .filter(bill -> PaymentType.DEPOSIT.name().equals(bill.getType()))
+                    .filter(bill -> bill.getStatus().equals("SUCCESS"))
                     .findFirst()
                     .orElse(null);
 
             Bill remainingBill = billList.stream()
                     .filter(bill -> PaymentType.REMAINING.name().equals(bill.getType()))
+                    .filter(bill -> bill.getStatus().equals("SUCCESS"))
                     .findFirst()
                     .orElse(null);
 
@@ -682,11 +684,13 @@ public class IBookingService implements BookingService {
 
             Bill depositBill = billList.stream()
                     .filter(bill -> PaymentType.DEPOSIT.name().equals(bill.getType()))
+                    .filter(bill -> bill.getStatus().equals("SUCCESS"))
                     .findFirst()
                     .orElse(null);
 
             Bill remainingBill = billList.stream()
                     .filter(bill -> PaymentType.REMAINING.name().equals(bill.getType()))
+                    .filter(bill -> bill.getStatus().equals("SUCCESS"))
                     .findFirst()
                     .orElse(null);
 
@@ -986,7 +990,7 @@ public class IBookingService implements BookingService {
         BookingRoom checkDate = booking.getBookingRooms().stream()
                 .findFirst()
                 .orElseThrow(() -> new AppException(ErrorCode.BOOKING_ROOM_NOT_FOUND));
-        booking.setStatus(BookingStatusEnum.CHECKED_OUT.name());
+        //booking.setStatus(BookingStatusEnum.CHECKED_OUT.name());
 
         Bill payment = billRepository.findBillByBookingAndType(booking,PaymentType.DEPOSIT.name());
 
@@ -1013,6 +1017,47 @@ public class IBookingService implements BookingService {
         billRepository.save(bill);
         kq.put("paymentId",bill.getId());
         return kq;
+    }
+
+    @Override
+    public ResponseEntity<?> checkBillCheckOut(String transId, int paymentId) throws Exception {
+        Bill bill = billRepository.findById(paymentId).orElseThrow(()-> new AppException(ErrorCode.NOT_FOUND));
+        Booking booking = billRepository.findBookingByBillId(paymentId);
+        Map<String,Object> kq = zaloPayService.getStatusByApptransid(transId);
+        if(kq.get("returncode") != null && (Integer) kq.get("returncode") != 1){
+            bill.setStatus("FAIL");
+            billRepository.save(bill);
+            booking.setUpdateAt(LocalDateTime.now());
+            bookingRepository.save(booking);
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(
+                            ApiResponse.builder()
+                                    .statusCode(400)
+                                    .message("PAYMENT_FAIL")
+                                    .description("Thanh toán thất bại.")
+                                    .data(getBillDetail(booking))
+                                    .build()
+                    );
+        }
+        bill.setStatus("SUCCESS");
+        billRepository.save(bill);
+        booking.setStatus(BookingStatusEnum.CHECKED_OUT.name());
+        booking.setUpdateAt(LocalDateTime.now());
+        booking.getBookingRooms().forEach(
+                bookingRoom -> bookingRoom.setStatus(String.valueOf(BookingStatusEnum.CHECKED_OUT))
+        );
+        bookingRepository.save(booking);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(200)
+                                .message("PAYMENT_SUCCESS")
+                                .description("Thanh toán thành công.")
+                                .data(getBillDetail(booking))
+                                .build()
+                );
     }
 
     @Override

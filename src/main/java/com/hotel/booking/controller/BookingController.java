@@ -71,4 +71,9 @@ public class BookingController {
     public Map<String, Object> checkout(@PathVariable int bookingId, Principal principal) throws Exception {
         return bookingService.checkOut(bookingId,principal);
     }
+
+    @PostMapping("check_bill_checkout")
+    public ResponseEntity<?> checkBillCheckout(@RequestBody CheckBillRequest check) throws Exception {
+        return bookingService.checkBillCheckOut(check.getTransId(),check.getPaymentId());
+    }
 }

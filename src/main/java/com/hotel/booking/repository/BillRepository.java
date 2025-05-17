@@ -14,6 +14,6 @@ public interface BillRepository extends JpaRepository<Bill, Integer> {
     Booking findBookingByBillId(@Param("billId") Integer billId);
     List<Bill> findBillByBooking(Booking booking);
 
-    @Query("select bl from Bill bl where bl.booking = :booking and bl.type = :type")
+    @Query("select bl from Bill bl where bl.booking = :booking and bl.type = :type and bl.status = 'SUCCESS'")
     Bill findBillByBookingAndType(@Param("booking") Booking booking,@Param("type") String type);
 }

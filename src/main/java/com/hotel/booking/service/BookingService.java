@@ -26,5 +26,6 @@ public interface BookingService {
     //status booking
     ResponseEntity<?> checkIn(Integer bookingId,Principal principal) throws Exception;
     Map<String,Object> checkOut(Integer bookingId,Principal principal) throws Exception;
+    ResponseEntity<?> checkBillCheckOut(String transId,int paymentId) throws Exception;
     ResponseEntity<?> cancelBooking(Integer bookingId,Principal principal);
 }
