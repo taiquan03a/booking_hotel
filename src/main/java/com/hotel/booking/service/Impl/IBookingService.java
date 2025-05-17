@@ -432,6 +432,7 @@ public class IBookingService implements BookingService {
                 .paymentAmount(String.valueOf(booking.getSumPrice()))
                 .status("PROCESSING")
                 .transId(kq.get("apptransid").toString())
+                .type(PaymentType.DEPOSIT.name())
                 .createAt(LocalDateTime.now())
                 .build();
         billRepository.save(bill);
@@ -994,7 +995,7 @@ public class IBookingService implements BookingService {
             bookingRepository.save(booking);
             Map<String, Object> res = new HashMap<>();
             res.put("statusCode", 200);
-            res.put("message","Check in thành công.");
+            res.put("message","Check out thành công.");
             res.put("timestamp", new Date(System.currentTimeMillis()));
             return res;
         }
