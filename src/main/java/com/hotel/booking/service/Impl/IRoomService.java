@@ -27,10 +27,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -215,7 +212,7 @@ public class IRoomService implements RoomService {
         List<RoomServiceModel> roomServices = roomServiceModelRepository.findAllById(serviceIds);
         List<ServiceRoom> currentService = serviceRoomRepository.findAllByRoom(roomCurrent);
         for (ServiceRoom serviceRoom1 : currentService) {
-            if (serviceRoom1.getId() == null) {
+            if (serviceRoom1.getId() != null) {
                 serviceRoomRepository.delete(serviceRoom1);
             }
         }
@@ -330,6 +327,7 @@ public class IRoomService implements RoomService {
                 roomRepository.findAll().
                         stream()
                         .filter(room -> rankId == null || room.getRoomRank().getId() == Integer.parseInt(rankId))
+                        .sorted(Comparator.comparing(Room::getCreateAt))
                         .collect(Collectors.toList()));
         for(RoomAdminResponse roomAdminResponse : roomResponseList) {
             Room room = roomRepository.findById(roomAdminResponse.getId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
