@@ -63,4 +63,9 @@ public class ServiceHotelController {
     public ResponseEntity<?> checkStatusRoom(@RequestParam int paymentId ,String transId) throws Exception {
         return serviceHotelService.checkBookingRoomStatus(paymentId,transId);
     }
+
+    @GetMapping("history")
+    public ResponseEntity<?> history (){
+        return serviceHotelService.historyBookingService();
+    }
 }

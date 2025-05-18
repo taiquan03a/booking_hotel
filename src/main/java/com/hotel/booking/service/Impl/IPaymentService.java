@@ -63,7 +63,7 @@ public class IPaymentService implements PaymentService {
             }
 
             if (!isPaid) {
-                bill.setStatus("CANCELED");
+                bill.setStatus("FAILED");
                 billRepository.save(bill);
             }
         }, Executors.newCachedThreadPool()); // Chạy trong thread pool riêng

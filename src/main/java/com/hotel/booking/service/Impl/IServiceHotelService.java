@@ -7,6 +7,7 @@ import com.hotel.booking.dto.serviceHotel.*;
 import com.hotel.booking.exception.AppException;
 import com.hotel.booking.exception.ErrorCode;
 import com.hotel.booking.model.*;
+import com.hotel.booking.model.Enum.PaymentType;
 import com.hotel.booking.repository.*;
 import com.hotel.booking.service.CloudinaryService;
 import com.hotel.booking.service.PaymentService;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -498,6 +500,46 @@ public class IServiceHotelService implements ServiceHotelService {
                                 .statusCode(200)
                                 .message("PAYMENT_SUCCESS")
                                 .description("Thanh toán thành công.")
+                                .build()
+                );
+    }
+
+    @Override
+    public ResponseEntity<?> historyBookingService() {
+//        List<Bill> billServiceList = billRepository.findAll().stream()
+//                .filter(bill -> bill.getStatus().equals("SUCCESS"))
+//                .filter(bill -> bill.getType().equals(PaymentType.SERVICE.name()))
+//                .toList();
+//
+//        for(Bill bill: billServiceList){
+//            HistoryBookingServiceResponse historyBookingServiceResponse = HistoryBookingServiceResponse.builder()
+//                    .serviceId(bill.getPaymentDate())
+//                    .serviceName(roomServiceModelRepository.findById(Integer.valueOf(bill.getPaymentDate())).get().getName())
+//                    .build()
+//        }
+        List<UserServiceHotel> userServiceHotelList = userServiceHotelRepository.findAll().stream()
+                .filter(userServiceHotel -> userServiceHotel.getStatus().equals("SUCCESS"))
+                .toList();
+        List<HistoryBookingServiceResponse> history = new ArrayList<>();
+        for(UserServiceHotel userServiceHotel: userServiceHotelList){
+            HistoryBookingServiceResponse historyBookingServiceResponse = HistoryBookingServiceResponse.builder()
+                    .serviceId(userServiceHotel.getServiceHotel().getId())
+                    .serviceName(userServiceHotel.getServiceHotel().getName())
+                    .userName(userServiceHotel.getUser().getUsername())
+                    .phone(userServiceHotel.getUser().getPhone())
+                    .price(userServiceHotel.getServiceHotel().getPrice().toString())
+                    .statusPayment(userServiceHotel.getStatus())
+                    .build();
+            history.add(historyBookingServiceResponse);
+        }
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(
+                        ApiResponse.builder()
+                                .statusCode(200)
+                                .message("HISTORY_BOOKING_SERVICE_HOTEL_SUCCESS")
+                                .description("Lịch sử đặt dịch vụ khách sạn.")
+                                .data(history)
                                 .build()
                 );
     }

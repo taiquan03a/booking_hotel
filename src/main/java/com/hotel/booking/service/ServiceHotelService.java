@@ -26,5 +26,6 @@ public interface ServiceHotelService {
     ResponseEntity<?> serviceRoomDetail(int serviceRoomId,Principal principal);
     ResponseEntity<?> bookingServiceRoom(BookingServiceRoom bookingServiceRoom, Principal principal) throws Exception;
     ResponseEntity<?> checkBookingRoomStatus(int paymentId,String transId) throws Exception;
+    ResponseEntity<?> historyBookingService();
     void checkPaymentsAsync(Booking booking, BookingRoom bookingRoom, Bill bill);
 }
