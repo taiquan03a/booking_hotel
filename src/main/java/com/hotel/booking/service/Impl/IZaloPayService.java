@@ -24,7 +24,7 @@ import java.util.*;
 public class IZaloPayService implements ZaloPayService {
 
     @Override
-    public Map<String, Object> createPayment(String appuser, Long amount, Long order_id) throws Exception{
+    public Map<String, Object> createPayment(String appuser, Long amount, Long order_id,String url) throws Exception{
         Map<String, Object> zalopay_Params = new HashMap<>();
         zalopay_Params.put("appid", ZaloPayConfig.APP_ID);
         zalopay_Params.put("apptransid", getCurrentTimeString("yyMMdd") + "_" + new Date().getTime());
@@ -46,7 +46,7 @@ public class IZaloPayService implements ZaloPayService {
         Map<String, String> embeddata = new HashMap<>();
         embeddata.put("merchantinfo", "eshop123");
         embeddata.put("promotioninfo", "");
-        embeddata.put("redirecturl", ZaloPayConfig.REDIRECT_URL);
+        embeddata.put("redirecturl", url);
 
         Map<String, String> columninfo = new HashMap<String, String>();
         columninfo.put("store_name", "E-Shop");

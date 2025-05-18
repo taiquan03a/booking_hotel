@@ -1,5 +1,6 @@
 package com.hotel.booking.service.Impl;
 
+import com.hotel.booking.configuration.ZaloPayConfig;
 import com.hotel.booking.dto.ApiResponse;
 import com.hotel.booking.dto.category.CategoryDto;
 import com.hotel.booking.dto.serviceHotel.*;
@@ -245,7 +246,8 @@ public class IServiceHotelService implements ServiceHotelService {
         Map<String,Object> kq = zaloPayService.createPayment(
                 "booking service hotel",
                 Long.valueOf(serviceHotel.getPrice()),
-                Long.valueOf(userServiceHotel.getId())
+                Long.valueOf(userServiceHotel.getId()),
+                ZaloPayConfig.SERVICE_URL
         );
         kq.put("payment_id",userServiceHotel.getId());
 
@@ -408,7 +410,8 @@ public class IServiceHotelService implements ServiceHotelService {
         Map<String,Object> kq = zaloPayService.createPayment(
                 "booking service room",
                 Long.valueOf(serviceRoom.getPrice()),
-                Long.valueOf(bookingRoom.getId())
+                Long.valueOf(bookingRoom.getId()),
+                ZaloPayConfig.SERVICE_URL
         );
         Bill bill = Bill.builder()
                 .booking(bookingRoom.getBooking())

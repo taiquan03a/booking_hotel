@@ -1,5 +1,6 @@
 package com.hotel.booking.controller;
 
+import com.hotel.booking.configuration.ZaloPayConfig;
 import com.hotel.booking.service.ZaloPayService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class ZaloPayController {
             @RequestParam(name = "amount") Long amount,
             @RequestParam(name ="order_id") Long order_id
     ) throws Exception{
-        return zaloPayService.createPayment(appuser, amount, order_id);
+        return zaloPayService.createPayment(appuser, amount, order_id, ZaloPayConfig.REDIRECT_URL);
     }
     @GetMapping(value = "/getstatusbyapptransid")
     public Map<String, Object> getStatusByAppTransId(@RequestParam(name = "apptransid") String apptransid) throws Exception {

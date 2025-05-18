@@ -1,5 +1,6 @@
 package com.hotel.booking.service.Impl;
 
+import com.hotel.booking.configuration.ZaloPayConfig;
 import com.hotel.booking.dto.ApiResponse;
 import com.hotel.booking.dto.booking.*;
 import com.hotel.booking.dto.dashboard.Chart;
@@ -426,7 +427,7 @@ public class IBookingService implements BookingService {
                 bookingRoom -> bookingRoom.setStatus(String.valueOf(BookingStatusEnum.BOOKED))
         );
         bookingRepository.save(booking);
-        Map<String,Object> kq = zaloPayService.createPayment("booking",Long.valueOf(booking.getSumPrice()), Long.valueOf(booking.getId()));
+        Map<String,Object> kq = zaloPayService.createPayment("booking",Long.valueOf(booking.getSumPrice()), Long.valueOf(booking.getId()), ZaloPayConfig.REDIRECT_URL);
         Bill bill = Bill.builder()
                 .booking(booking)
                 .paymentAmount(String.valueOf(booking.getSumPrice()))
@@ -858,7 +859,7 @@ public class IBookingService implements BookingService {
         int finalDeposit = depositPrice.get();
         System.out.println("finalDeposit: " + finalDeposit);
         bookingRepository.save(booking);
-        Map<String,Object> kq = zaloPayService.createPayment("booking", (long) finalDeposit, Long.valueOf(booking.getId()));
+        Map<String,Object> kq = zaloPayService.createPayment("booking", (long) finalDeposit, Long.valueOf(booking.getId()),ZaloPayConfig.REDIRECT_URL);
         Bill bill = Bill.builder()
                 .booking(booking)
                 .paymentAmount(String.valueOf(finalDeposit))
@@ -1006,7 +1007,7 @@ public class IBookingService implements BookingService {
         }
 
 
-        Map<String,Object> kq = zaloPayService.createPayment("remaning payment",remainingPrice, Long.valueOf(booking.getId()));
+        Map<String,Object> kq = zaloPayService.createPayment("remaning payment",remainingPrice, Long.valueOf(booking.getId()),ZaloPayConfig.CHECKOUT_URL);
         Bill bill = Bill.builder()
                 .booking(booking)
                 .paymentAmount(String.valueOf(booking.getSumPrice()))

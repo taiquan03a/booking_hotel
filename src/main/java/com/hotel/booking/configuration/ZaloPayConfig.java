@@ -7,4 +7,6 @@ public class ZaloPayConfig {
     public static String CREATE_ORDER_URL = "https://sandbox.zalopay.com.vn/v001/tpe/createorder";
     public static String GET_STATUS_PAY_URL = "https://sandbox.zalopay.com.vn/v001/tpe/getstatusbyapptransid";
     public static String REDIRECT_URL = "http://localhost:3000/success/payment";
+    public static String CHECKOUT_URL = "http://localhost:3000/success/checkout";
+    public static String SERVICE_URL = "http://localhost:3000/success/service";
 }
