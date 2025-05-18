@@ -996,6 +996,7 @@ public class IBookingService implements BookingService {
 
         long remainingPrice = booking.getSumPrice() - Integer.parseInt(payment.getPaymentAmount());
         if(remainingPrice == 0){
+            booking.setStatus(BookingStatusEnum.CHECKED_OUT.name());
             bookingRepository.save(booking);
             Map<String, Object> res = new HashMap<>();
             res.put("statusCode", 200);
