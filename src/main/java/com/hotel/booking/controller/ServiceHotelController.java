@@ -60,7 +60,7 @@ public class ServiceHotelController {
         return serviceHotelService.bookingServiceRoom(bookingServiceRoom,principal);
     }
     @GetMapping("check_status_room")
-    public ResponseEntity<?> checkStatusRoom(@RequestParam int paymentId ,String transId) throws Exception {
+    public ResponseEntity<?> checkStatusRoom(@RequestParam int paymentId ,@RequestParam String transId) throws Exception {
         return serviceHotelService.checkBookingRoomStatus(paymentId,transId);
     }
 

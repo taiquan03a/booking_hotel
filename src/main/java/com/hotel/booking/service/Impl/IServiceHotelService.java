@@ -479,7 +479,7 @@ public class IServiceHotelService implements ServiceHotelService {
         Bill bill = billRepository.findById(paymentId).get();
         if(kq.get("returncode") != null && (Integer) kq.get("returncode") != 1){
 
-            bill.setStatus("CANCELED");
+            bill.setStatus("FAILED");
             billRepository.save(bill);
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
