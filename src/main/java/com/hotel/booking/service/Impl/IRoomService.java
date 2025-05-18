@@ -327,7 +327,7 @@ public class IRoomService implements RoomService {
                 roomRepository.findAll().
                         stream()
                         .filter(room -> rankId == null || room.getRoomRank().getId() == Integer.parseInt(rankId))
-                        .sorted(Comparator.comparing(Room::getCreateAt))
+                        .sorted(Comparator.comparing(Room::getCreateAt).reversed())
                         .collect(Collectors.toList()));
         for(RoomAdminResponse roomAdminResponse : roomResponseList) {
             Room room = roomRepository.findById(roomAdminResponse.getId()).orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
