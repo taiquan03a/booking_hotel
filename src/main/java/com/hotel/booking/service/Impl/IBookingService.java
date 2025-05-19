@@ -282,7 +282,7 @@ public class IBookingService implements BookingService {
                         break;
                     }
                 }
-                if(serviceRoom != null && exists){
+                if(serviceRoom != null){
                     ServiceRoomSelect select = ServiceRoomSelect.builder()
                             .id(serviceModel.getId())
                             .name(serviceModel.getName())
@@ -515,7 +515,7 @@ public class IBookingService implements BookingService {
                             break;
                         }
                     }
-                    if(serviceRoom != null){
+                    if(serviceRoom != null && exists){
                         ServiceRoomSelect select = ServiceRoomSelect.builder()
                                 .id(serviceModel.getId())
                                 .name(serviceModel.getName())
