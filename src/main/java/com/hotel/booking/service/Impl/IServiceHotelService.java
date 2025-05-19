@@ -198,22 +198,22 @@ public class IServiceHotelService implements ServiceHotelService {
             }
 
         }
-        CategoryDto categoryServiceRoom = CategoryDto.builder()
-                .id(3)
-                .name("Dịch vụ khác")
-                .description("Các dịch vụ phòng khách sạn")
-                .serviceHotelList(roomServiceModelRepository
-                        .findAll()
-                        .stream()
-                        .map(roomServiceModel -> ServiceDto.builder()
-                                .id(roomServiceModel.getId())
-                                .name(roomServiceModel.getName())
-                                .description(roomServiceModel.getDescription())
-                                .image(roomServiceModel.getIcon())
-                                .build())
-                        .toList())
-                .build();
-        categoryDtoList.add(categoryServiceRoom);
+//        CategoryDto categoryServiceRoom = CategoryDto.builder()
+//                .id(3)
+//                .name("Dịch vụ khác")
+//                .description("Các dịch vụ phòng khách sạn")
+//                .serviceHotelList(roomServiceModelRepository
+//                        .findAll()
+//                        .stream()
+//                        .map(roomServiceModel -> ServiceDto.builder()
+//                                .id(roomServiceModel.getId())
+//                                .name(roomServiceModel.getName())
+//                                .description(roomServiceModel.getDescription())
+//                                .image(roomServiceModel.getIcon())
+//                                .build())
+//                        .toList())
+//                .build();
+//        categoryDtoList.add(categoryServiceRoom);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
