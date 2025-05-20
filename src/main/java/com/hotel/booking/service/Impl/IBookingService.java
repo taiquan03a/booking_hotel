@@ -399,7 +399,7 @@ public class IBookingService implements BookingService {
         bookingRoom.setAdultSurcharge(adultPlus);
         bookingRoom.setChildSurcharge(childPlus);
         bookingRoom.setPrice(room.getPrice() + adultPlus + childPlus + servicePrice);
-        booking.setSumPrice(bookingRoom.getPrice() - bookingRoomPriceOld + bookingRoom.getPrice());
+        booking.setSumPrice(booking.getSumPrice() - bookingRoomPriceOld + bookingRoom.getPrice());
         bookingRoomRepository.save(bookingRoom);
         bookingRepository.save(booking);
         return ResponseEntity
