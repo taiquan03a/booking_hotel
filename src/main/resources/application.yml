@@ -13,7 +13,7 @@ spring:
   datasource:
     driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
     password: 123
-    url: jdbc:sqlserver://192.168.144.1:1433;databaseName=booking;encrypt=true;trustServerCertificate=true;
+    url: jdbc:sqlserver://localhost:1433;databaseName=booking;encrypt=true;trustServerCertificate=true;
     username: sa
     jpa:
       show-sql: true

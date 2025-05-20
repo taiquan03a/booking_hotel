@@ -76,13 +76,21 @@ public class IServiceRoom implements ServiceRoom {
     public ResponseEntity<?> update(UpdateRoomService updateRoomService) throws IOException {
         RoomServiceModel roomServiceModel = roomServiceModelRepository
                 .findById(updateRoomService.getId())
-                .orElseThrow(()->new AppException(ErrorCode.NOT_FOUND));
-        String url = cloudinaryService.uploadImage(updateRoomService.getImage(),"rooms");
+                .orElseThrow(() -> new AppException(ErrorCode.NOT_FOUND));
+
+        // Kiểm tra ảnh gửi lên có khác null và không rỗng không
+        if (updateRoomService.getImage() != null && !updateRoomService.getImage().isEmpty()) {
+            String url = cloudinaryService.uploadImage(updateRoomService.getImage(), "rooms");
+            roomServiceModel.setIcon(url);
+        }
+        // Nếu không có ảnh gửi lên, giữ nguyên ảnh cũ (không cập nhật trường icon)
+
         roomServiceModel.setName(updateRoomService.getName());
         roomServiceModel.setDescription(updateRoomService.getDescription());
-        roomServiceModel.setIcon(url);
         roomServiceModel.setUpdateAt(LocalDateTime.now());
+
         roomServiceModelRepository.save(roomServiceModel);
+
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(
@@ -93,6 +101,7 @@ public class IServiceRoom implements ServiceRoom {
                                 .build()
                 );
     }
+
 
     @Override
     public ResponseEntity<?> delete(int id) {
