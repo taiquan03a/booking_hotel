@@ -1010,7 +1010,7 @@ public class IBookingService implements BookingService {
         Map<String,Object> kq = zaloPayService.createPayment("remaning payment",remainingPrice, Long.valueOf(booking.getId()),ZaloPayConfig.CHECKOUT_URL);
         Bill bill = Bill.builder()
                 .booking(booking)
-                .paymentAmount(String.valueOf(booking.getSumPrice()))
+                .paymentAmount(String.valueOf(remainingPrice))
                 .status("PROCESSING")
                 .transId(kq.get("apptransid").toString())
                 .createAt(LocalDateTime.now())
