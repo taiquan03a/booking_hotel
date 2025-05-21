@@ -141,12 +141,14 @@ public class IBookingService implements BookingService {
                 }
             }
         }
+        LocalTime checkinTime = LocalTime.parse(policyMap.get(String.valueOf(PolicyTypeEnum.CHECKIN)));
+        LocalTime checkoutTime = LocalTime.parse(policyMap.get(String.valueOf(PolicyTypeEnum.CHECKOUT)));
         BookingRoom bookingRoom = BookingRoom.builder()
                 .sumAdult(createCart.getAdults())
                 .sumChildren(createCart.getChildren())
                 .sumInfant(createCart.getInfants())
-                .checkin(createCart.getCheckinDate().atTime(14,0))
-                .checkout(createCart.getCheckoutDate().atTime(12,0))
+                .checkin(createCart.getCheckinDate().atTime(checkinTime))
+                .checkout(createCart.getCheckoutDate().atTime(checkoutTime))
                 .status(String.valueOf(BookingStatusEnum.CART))
                 .statusTime(LocalDateTime.now())
                 .serviceId("0")
